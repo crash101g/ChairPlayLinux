@@ -13,6 +13,10 @@ An unofficial port of <a href="https://github.com/NumberOneBot/ChairPlay">ChairP
   <a href="https://github.com/NumberOneBot/ChairPlay"><img src="https://img.shields.io/badge/Original-NumberOneBot%2FChairPlay-555?style=flat" alt="Original project: NumberOneBot/ChairPlay"></a>
 </p>
 
+<p align="center">
+  <a href="https://github.com/crash101g/ChairPlayLinux/releases/latest"><img src="https://img.shields.io/badge/Download%20.deb-E95420?style=for-the-badge" alt="Download .deb"></a>
+</p>
+
 > [!IMPORTANT]
 > **This is not the original ChairPlay.** ChairPlay is written and maintained by Oleksiy Strelets
 > ([NumberOneBot](https://github.com/NumberOneBot)) as a Windows app: **https://github.com/NumberOneBot/ChairPlay**.
@@ -83,7 +87,28 @@ The full list of changes is in [LINUX-PORT-NOTICE.md](LINUX-PORT-NOTICE.md).
 
 ## Install
 
-ChairPlay Linux is built from source on the PC that will run it. One script does everything.
+There are two ways to install: download the ready-made `.deb`, or build it from source.
+
+### Option A: Download the .deb (quickest)
+
+For **64-bit Intel/AMD PCs** running **Ubuntu 24.04 or later**, or a system built on it (Pop!_OS 24.04, Linux Mint 22,
+Kubuntu/Xubuntu 24.04, Zorin OS 18, elementary OS 8, and others):
+
+1. Download `chairplay_<version>-1_amd64.deb` from the
+   **[latest release](https://github.com/crash101g/ChairPlayLinux/releases/latest)**.
+2. Install it:
+
+   ```bash
+   sudo apt install ./chairplay_*_amd64.deb
+   ```
+
+3. Continue with [Set up](#set-up-both-options): add your MFi files, pair your iPhone and check the PC.
+
+On **Ubuntu 22.04, Linux Mint 21, Debian 12, or an arm64 PC**, the downloaded package won't install. Use Option B instead.
+
+### Option B: Build from source
+
+This works on every supported system. One script builds the app and installs it.
 
 **1. Get the source.** The CarPlay core (DiPlay) is a git submodule, so clone with `--recursive`:
 
@@ -103,6 +128,8 @@ The script installs the build tools with apt (it asks for your password). It dow
 system lacks a suitable version, and checks each download against its published checksum. It then builds
 `build/jpackage/chairplay_<version>-1_<arch>.deb` and installs it. The app bundles its own Java runtime and adds
 **ChairPlay** to your applications menu.
+
+### Set up (both options)
 
 **3. Add your MFi files:**
 
@@ -160,6 +187,12 @@ network, the firewall, sound and OpenGL, and tells you how to fix each **✘** i
 - If **ufw** or **firewalld** is on, the Get started screen offers to add the needed rules for you.
 
 ### Update
+
+**If you installed the downloaded .deb:** download the newer `.deb` from
+[Releases](https://github.com/crash101g/ChairPlayLinux/releases/latest) and install it with
+`sudo apt install ./chairplay_*_amd64.deb`.
+
+**If you built from source:**
 
 ```bash
 cd ~/ChairPlay
