@@ -31,14 +31,14 @@ ROOT=$(pwd)
 
 INSTALL=0
 TEST=0
-VERSION=""
+APP_VERSION=""
 CLEAN=0
 DEPS=1
 while [ $# -gt 0 ]; do
     case "$1" in
         --install) INSTALL=1 ;;
         --test) TEST=1 ;;
-        --version) VERSION="${2:?--version needs X.Y.Z}"; shift ;;
+        --version) APP_VERSION="${2:?--version needs X.Y.Z}"; shift ;;
         --clean) CLEAN=1 ;;
         --no-deps) DEPS=0 ;;
         -h|--help) sed -n 13,26p "$0"; exit 0 ;;
@@ -155,7 +155,7 @@ say "Node $(node -v), JDK $("$JAVA_HOME/bin/java" -version 2>&1 | head -1)"
 # 5. The build.
 chmod +x gradlew
 ARGS=(--no-daemon "-Porg.gradle.java.installations.paths=$JAVA_HOME")
-[ -n "$VERSION" ] && ARGS+=("-Pchairplay.version=$VERSION")
+[ -n "$APP_VERSION" ] && ARGS+=("-Pchairplay.version=$APP_VERSION")
 if [ "$CLEAN" = 1 ]; then
     say "Cleaning"
     ./gradlew "${ARGS[@]}" clean
