@@ -50,7 +50,7 @@ includes. **Tested** on Pop!_OS with COSMIC on an Intel PC; the rest is expected
 For those who know their way around a terminal:
 
 ```
-git clone --recursive <this repository's URL> ChairPlay && cd ChairPlay
+git clone --recursive https://github.com/crash101g/ChairPlayLinux.git ChairPlay && cd ChairPlay
 scripts/build-linux.sh --install           # builds the .deb and installs it (asks for sudo)
 mkdir -p ~/.local/share/ChairPlay/offline-mfi
 cp /path/to/identity.pk8 /path/to/certificate.p7b ~/.local/share/ChairPlay/offline-mfi/
@@ -70,7 +70,7 @@ submodule.
 ```
 sudo apt install git
 cd ~
-git clone --recursive <this repository's URL> ChairPlay
+git clone --recursive https://github.com/crash101g/ChairPlayLinux.git ChairPlay
 cd ChairPlay
 ```
 

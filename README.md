@@ -1,160 +1,209 @@
-> [!WARNING]
-> # ⚠️ Unofficial Linux port (Ubuntu, Pop!_OS, Mint, Debian…) — this is NOT the original ChairPlay
->
-> **ChairPlay is not my project.** It is written and maintained by **Oleksiy Strelets ([NumberOneBot](https://github.com/NumberOneBot))**:
-> **https://github.com/NumberOneBot/ChairPlay**. The original is a Windows app.
->
-> This repository is an **unofficial port of ChairPlay to Ubuntu-family Linux (Ubuntu, Pop!_OS, Linux Mint, Kubuntu,
-> Zorin, elementary, Debian…) that I made for my own personal use**.
-> I'm sharing it as-is, in case it helps someone else. It is **not affiliated with, reviewed, or endorsed by** the ChairPlay
-> author, DiPlay, xcertplay, or Apple, and it is **not supported**.
->
-> - **Please do not report problems with this port to the original ChairPlay project.** Its author does not ship or support Linux.
-> - Everything that is good here is the original author's work (and DiPlay's and xcertplay's). The Linux-specific changes are
->   listed in [LINUX-PORT-NOTICE.md](LINUX-PORT-NOTICE.md). **Full installation and setup guide: [docs/LINUX.md](docs/LINUX.md).**
-> - Licensed **GPL-3.0**, like the original ([LICENSE](LICENSE)). No Apple MFi identity is included; you need your own.
-> - If you use Windows, get the real thing from the [original project's releases](https://github.com/NumberOneBot/ChairPlay/releases).
->
-> *The rest of this README is the original project's, unchanged except for one line pointing to the Linux guide.*
-
----
-
 <p align="center">
   <img src="packaging/icon/chairplay-1024.png" alt="ChairPlay app icon" width="128" height="128">
 </p>
 
-<h1 align="center">ChairPlay</h1>
+<h1 align="center">ChairPlay Linux</h1>
 
-<p align="center"><strong>Wireless Apple CarPlay on your Windows PC.</strong></p>
+<p align="center"><strong>Wireless Apple CarPlay on your Linux PC.</strong><br>
+An unofficial port of <a href="https://github.com/NumberOneBot/ChairPlay">ChairPlay</a> to Ubuntu, Pop!_OS, Linux Mint, Debian and their relatives.</p>
 
 <p align="center">
-  <a href="https://github.com/NumberOneBot/ChairPlay/releases/latest"><img src="https://img.shields.io/github/v/release/NumberOneBot/ChairPlay?style=flat&amp;label=Latest%20release" alt="Latest release"></a>
-  <a href="#what-you-need"><img src="https://img.shields.io/badge/Windows-10%20%2F%2011%20%C2%B7%20x64-0078D4?style=flat" alt="Windows 10 / 11 · x64"></a>
+  <img src="https://img.shields.io/badge/Linux-Ubuntu%20%2F%20Debian%20family%20%C2%B7%20amd64%20%2F%20arm64-E95420?style=flat" alt="Linux: Ubuntu / Debian family · amd64 / arm64">
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-GPL--3.0-blue?style=flat" alt="License: GPL-3.0"></a>
-  <a href="https://github.com/NumberOneBot/ChairPlay/releases"><img src="https://img.shields.io/github/downloads/NumberOneBot/ChairPlay/total?style=flat&amp;label=Downloads" alt="Total downloads"></a>
+  <a href="https://github.com/NumberOneBot/ChairPlay"><img src="https://img.shields.io/badge/Original-NumberOneBot%2FChairPlay-555?style=flat" alt="Original project: NumberOneBot/ChairPlay"></a>
 </p>
 
-<p align="center">
-  <a href="https://github.com/NumberOneBot/ChairPlay/releases/latest"><img src="https://img.shields.io/badge/Download-0078D4?style=for-the-badge" alt="Download"></a>
-</p>
+> [!IMPORTANT]
+> **This is not the original ChairPlay.** ChairPlay is written and maintained by Oleksiy Strelets
+> ([NumberOneBot](https://github.com/NumberOneBot)) as a Windows app: **https://github.com/NumberOneBot/ChairPlay**.
+> This repository is a personal, unofficial port to Linux. It is not affiliated with or endorsed by the ChairPlay author,
+> DiPlay, xcertplay or Apple. **Please don't report Linux problems to the original project.**
 
-Listen to music, use navigation, take calls and talk to Siri through your PC's speakers and microphone. Control CarPlay with your mouse and keyboard.
+![ChairPlay: the CarPlay home screen in the ChairPlay window](docs/images/chairplay.jpg)
 
-![ChairPlay on Windows: the AltScreen instrument cluster over a map, the CarPlay home screen in the ChairPlay window, and the on-screen car controls](docs/images/chairplay.jpg)
+<sub>Screenshot from the original Windows app. On Linux it looks the same, except that the settings open in a browser window.</sub>
 
-Useful for building and testing CarPlay apps and navigation without a car, for demos, or just CarPlay on a desk.
+---
 
-## What you need
+## What is ChairPlay?
 
+[ChairPlay](https://github.com/NumberOneBot/ChairPlay) makes your PC act as a **wireless CarPlay car head unit**. Your
+iPhone connects to the PC over Bluetooth and Wi-Fi just as it would to a car. CarPlay then runs in a window on your
+desktop: you can listen to music, use navigation, take calls and talk to Siri through the PC's speakers and microphone,
+and control everything with the mouse and keyboard.
+
+It's useful for building and testing CarPlay apps and navigation without a car, for demos, or just for CarPlay on a desk.
+
+Highlights of the original app (all of them work in this port):
+
+- CarPlay in a resizable window, with full screen; the mouse works as touch
+- Keyboard controls that act like a car's knob and buttons, plus typing into CarPlay text fields
+- Sound and microphone on the devices you choose, with ChairPlay's own volume control
+- **AltScreen** (experimental): a second CarPlay screen like a car's instrument cluster, with a map, turn card and HUD
+- **GPS spoofing** (experimental): the iPhone navigates by a virtual car that you drive with the keyboard or a gamepad
+
+For the full feature list, release notes, and the Windows version, **visit the original project:
+https://github.com/NumberOneBot/ChairPlay**. If you find ChairPlay useful, consider
+[supporting its author](https://www.buymeacoffee.com/alexstrelets).
+
+## What this Linux port does
+
+The original app only supports Windows. This port replaces the Windows-only parts with Linux equivalents and packages
+the app as a `.deb`:
+
+| Area | Windows (original) | Linux (this port) |
+| --- | --- | --- |
+| Bluetooth | Windows Bluetooth APIs | BlueZ (D-Bus / `bluetoothctl`) with a kernel RFCOMM socket |
+| Wi-Fi | Native Wifi API | NetworkManager (`nmcli`) or `iw` |
+| Firewall | Windows Firewall | ufw or firewalld (usually off on Ubuntu) |
+| Hardware video decoding | D3D11VA | VA-API (Intel, AMD), otherwise the CPU |
+| Settings screen | Inside the CarPlay window (WebView2) | A separate browser window (an app window in Chrome or Chromium) |
+| Installer | `setup.exe` | `.deb` installed to `/opt/chairplay`; data in `~/.local/share/ChairPlay` |
+| Build tools | — | `scripts/build-linux.sh` (one-step build and install) and `scripts/check-linux.sh` (system check) |
+
+The full list of changes is in [LINUX-PORT-NOTICE.md](LINUX-PORT-NOTICE.md).
+
+**Tested** on Pop!_OS 24.04 (COSMIC) on an Intel PC. Other Ubuntu- and Debian-family systems should work but haven't been tested.
+
+---
+
+## Requirements
+
+- **A 64-bit Linux PC** (amd64 or arm64) running **Ubuntu 22.04+**, **Debian 12+**, or a distribution built on
+  them: Pop!_OS, Linux Mint, Kubuntu, Xubuntu, Zorin OS, elementary OS, KDE neon, and others. It needs a graphical
+  desktop; Wayland and X11 both work.
+- **Bluetooth** with classic Bluetooth (BR/EDR) support, not only Bluetooth Low Energy. Most built-in and USB adapters have it.
 - **An iPhone** with CarPlay.
-- **A Windows 10 or 11 PC (64-bit)** with Bluetooth and Wi-Fi or Ethernet. A USB Bluetooth adapter works if it supports classic Bluetooth, not only Bluetooth Low Energy.
-- **One router for the PC and the iPhone.** Connect the iPhone by Wi-Fi and the PC by Wi-Fi or Ethernet. The network must let devices see each other: most home networks do, guest networks usually don't. It must use WPA2 or no password; WPA3-only networks don't work yet.
+- **One router for the PC and the iPhone.** The PC can be on Wi-Fi or Ethernet, and the iPhone on that router's Wi-Fi.
+  The network must let its devices see each other, which guest networks usually block. It must use **WPA2** or no
+  password, because WPA3-only networks don't work.
+- **Apple MFi identity files** (`identity.pk8` and `certificate.p7b`). **They are not included** in this project or in
+  the original, and CarPlay won't start without them.
+- About 2 GB free disk space and internet access for the first build.
 
-With Ethernet, ChairPlay selects a single available adapter automatically and offers a choice when there are several. See [Ethernet setup](docs/ETHERNET.md).
+## Install
 
-**On Linux?** *(unofficial port, not part of the original project)* See [ChairPlay on Linux](docs/LINUX.md) to build,
-install and set it up on Ubuntu, Pop!_OS, Linux Mint, Debian and other Ubuntu-family systems.
+ChairPlay Linux is built from source on the PC that will run it. One script does everything.
 
-## Get started
+**1. Get the source.** The CarPlay core (DiPlay) is a git submodule, so clone with `--recursive`:
 
-1. **Install.** Download the latest `ChairPlay-…-setup.exe` from the [Releases page](https://github.com/NumberOneBot/ChairPlay/releases) and run it. No administrator rights needed. If Windows SmartScreen warns about an unrecognized app, choose **More info → Run anyway**.
-2. **Pair your iPhone** with the PC once, in Windows Settings → Bluetooth & devices, as you would headphones.
-3. **Open ChairPlay.** The **Get started** screen checks the firewall, your paired iPhone, and your Wi-Fi network. The firewall step is omitted when Windows Firewall is off.
-4. **Connect.** When the checks are complete, keep your iPhone unlocked and nearby and press **Connect**. Accept the CarPlay prompt on the iPhone. CarPlay comes up.
-
-After that, open ChairPlay with your iPhone unlocked and nearby, and CarPlay starts by itself.
-
-A newer installer updates ChairPlay and keeps your settings, pairing and MFi files. Uninstalling asks whether to delete them too.
-
-See the [changelog](CHANGELOG.md) for changes between versions and the [1.0.4 release notes](docs/RELEASE-NOTES-1.0.4.md) for the upcoming update.
-
-## Features
-
-- CarPlay in a resizable window; the mouse works as touch.
-- Full screen for CarPlay and the AltScreen: focus either window and press **F** to enter or leave full screen. Leaving full screen restores the window's previous size, position, and maximized state.
-- Keyboard controls like a car's knob and buttons (see [Controls](#controls)), and on-screen car controls from the toolbar's Controls button.
-- Basic keyboard text input in CarPlay fields, using the iPhone's keyboard layout.
-- Sound and microphone on the devices you choose, with a volume separate from Windows'.
-- **AltScreen** (experimental): a car's instrument cluster as a second CarPlay screen in its own window, with the map, the turn card or both, in a preset part of the cluster or a rectangle you draw. It can also show a **HUD**: the next turn with animated 3D maneuvers, the distance, the arrival time and the song.
-- **GPS spoofing** (experimental): the iPhone navigates by a virtual car you drive with the keyboard or a gamepad. See the [GPS guide](docs/GPS.md) for details and optional satellite reports.
-
-Settings are in the app and save as you change them. Tested on Windows 11 with an iPhone 15 (iOS 18.6).
-
-## Controls
-
-Click to touch, use **Arrow keys** to move the focus, **Enter** or **Space** to select, and **Backspace** or **Esc** to go back. Press **Home** for the home screen, **F** for full screen, or **Ctrl+R** to reconnect.
-
-<details>
-<summary>All keyboard shortcuts</summary>
-
-| Key                                       | Does                                                           |
-| ----------------------------------------- | -------------------------------------------------------------- |
-| Mouse                                     | touch                                                          |
-| Arrows                                    | tilt the knob: move the focus                                  |
-| Tab / Shift+Tab, mouse wheel              | turn the knob                                                  |
-| Enter, Space                              | select                                                         |
-| Backspace, Esc                            | back                                                           |
-| Home                                      | home screen                                                    |
-| Ctrl+R                                    | reconnect                                                      |
-| S                                         | Siri                                                           |
-| F3 / F4                                   | answer / end a call                                            |
-| F7 / F8 / F9                              | previous track / play or pause / next track                    |
-| F10                                       | drive the GPS car with the arrows (GPS spoofing on)            |
-| Shift+F10                                 | large or small gauges for the GPS car                          |
-| F11                                       | AltScreen: switch between the HUD and the map                  |
-| Shift+F11                                 | AltScreen: move the arrival time and turn card                 |
-| F12                                       | save screenshots of CarPlay and the AltScreen                  |
-| F                                         | toggle full screen for the focused CarPlay or AltScreen window |
-| Ctrl+Up / Ctrl+Down / Ctrl+M              | ChairPlay's volume up / down / mute                            |
-| Mouse wheel over the AltScreen, + / −     | zoom the AltScreen map                                         |
-| The car button on the CarPlay home screen | open the settings; the CarPlay button or Esc returns           |
-
-</details>
-
-<br/>
-
-**Typing in CarPlay:** **Keyboard → Text input → Type in CarPlay** is on by default; reconnect after changing it. When CarPlay requests text input, letter shortcuts pause so you can type. Text follows the iPhone's layout, not the Windows layout. Shift, Caps Lock, Home/End, and text-selection shortcuts do not currently work in the tested CarPlay fields.
-
-## Support the project
-
-ChairPlay is a hobby project I build and test on real hardware in my spare time. It’s free and fully open source under GPL-3.0, and donations are the only way I earn anything from this work. If it saves you a trip to the car, helps you build CarPlay apps, or makes your desk a little more fun, you can buy me a coffee.
-
-<p align="center">
-  <a href="https://www.buymeacoffee.com/alexstrelets"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" width="217"></a>
-</p>
-
-## Good to know
-
-- Close ChairPlay with its window. If it's killed mid-session, from Task Manager for example, the iPhone may ignore new connections until you restart the iPhone.
-- It works over Wi-Fi only, not over USB or a hotspot shared by the PC.
-- Calls sound best with headphones. Echo cancellation for speakers is experimental and off by default.
-- Music comes over Wi-Fi as AAC; the iPhone doesn't send lossless audio this way.
-- The iPhone's volume buttons don't change CarPlay's volume. Use ChairPlay's volume or Windows'.
-
-## Report a problem
-
-Open an [issue](https://github.com/NumberOneBot/ChairPlay/issues/new): About → **Report a problem** fills in the version for you. For a connection problem, set **Log level** to **Info** on the Experiments page, try again, and attach the log: the **Logs** button on that page opens its folder. ChairPlay keeps your Wi-Fi password out of the log, but look it over before sending.
-
-Ideas and fixes are welcome too: open an issue or a pull request, or write to me at [alex.strelets@gmail.com](mailto:alex.strelets@gmail.com).
-
-## Build it yourself
-
-You need JDK 17; the build downloads the rest.
-
-```
-git clone --recursive https://github.com/NumberOneBot/ChairPlay.git
+```bash
+sudo apt install git
+git clone --recursive https://github.com/crash101g/ChairPlayLinux.git ChairPlay
 cd ChairPlay
-gradlew deploy
 ```
 
-This builds the app into `dist\ChairPlay`. [docs/SETUP.md](docs/SETUP.md) covers the build, every setting, moving to a newer DiPlay, and the git hooks that keep keys out of commits.
+**2. Build and install.** The first run takes about 5–15 minutes:
 
-## Licence and credits
+```bash
+scripts/build-linux.sh --install
+```
 
-GPL-3.0, like DiPlay and xcertplay; see [LICENSE](LICENSE). The CarPlay protocol work is DiPlay's and xcertplay's.
+The script installs the build tools with apt (it asks for your password). It downloads JDK 17 or Node.js only if your
+system lacks a suitable version, and checks each download against its published checksum. It then builds
+`build/jpackage/chairplay_<version>-1_<arch>.deb` and installs it. The app bundles its own Java runtime and adds
+**ChairPlay** to your applications menu.
 
-ChairPlay is built on [DiPlay](https://github.com/shihabal3amri/DiPlay) by shihabal3amri, a CarPlay receiver for Android car head units, which is based on [xcertplay](https://github.com/shilapi/xcertplay) by shilapi. ChairPlay is a separate project, not affiliated with their authors.
+**3. Add your MFi files:**
 
-The HUD's 3D maneuvers and destination flag are LuKa's, from [mib2q-carplay-rgi](https://github.com/luka-dev/mib2q-carplay-rgi) (GPL-3.0 or later); [native/maneuver/README.md](native/maneuver/README.md) lists what was taken and changed. The notices of the bundled libraries are in `THIRD_PARTY_NOTICES` and come with the app.
+```bash
+mkdir -p ~/.local/share/ChairPlay/offline-mfi
+cp /path/to/identity.pk8 /path/to/certificate.p7b ~/.local/share/ChairPlay/offline-mfi/
+```
 
-CarPlay, iPhone, AirPlay and Siri are trademarks of Apple Inc. ChairPlay is not affiliated with Apple. No Apple MFi identity is stored in this repository.
+**4. Pair your iPhone** with the PC once, as you would headphones. Use your desktop's Bluetooth settings, or run
+`bluetoothctl` and then `pair` and `trust` the iPhone.
+
+**5. Check the PC:**
+
+```bash
+scripts/check-linux.sh
+```
+
+This script only reads your system and changes nothing. It checks Bluetooth, the paired iPhone, the MFi files, the
+network, the firewall, sound and OpenGL, and tells you how to fix each **✘** it finds.
+
+## Use
+
+1. Open **ChairPlay** from the applications menu, or run `/opt/chairplay/bin/ChairPlay`. Two windows open: the
+   **CarPlay window** and the **settings** in a browser window.
+2. On the **Get started** screen, enter the **Wi-Fi name and password** of the router your iPhone uses. ChairPlay
+   sends them to the iPhone over Bluetooth so the iPhone can find the PC.
+3. Unlock the iPhone, keep it nearby, and press **Connect**. Accept the CarPlay prompt on the iPhone.
+4. CarPlay appears in the CarPlay window. After the first connection, CarPlay starts by itself whenever you open
+   ChairPlay with the iPhone unlocked and nearby.
+
+### Controls
+
+| Key | Does |
+| --- | --- |
+| Mouse | Touch |
+| Arrow keys | Move the focus (tilt the knob) |
+| Tab / Shift+Tab, mouse wheel | Turn the knob |
+| Enter, Space | Select |
+| Backspace, Esc | Back |
+| Home | Home screen |
+| S | Siri |
+| F | Full screen on or off |
+| F3 / F4 | Answer / end a call |
+| F7 / F8 / F9 | Previous track / play or pause / next track |
+| Ctrl+Up / Ctrl+Down / Ctrl+M | Volume up / down / mute |
+| Ctrl+R | Reconnect |
+| F12 | Screenshot (saved to `~/.local/share/ChairPlay/screenshots`) |
+
+### Tips
+
+- **Close ChairPlay with its window.** If you kill it mid-session, the iPhone may ignore new connections until you restart the iPhone.
+- Calls sound best with headphones.
+- **Start ChairPlay at login:** `mkdir -p ~/.config/autostart && cp /opt/chairplay/lib/chairplay-ChairPlay.desktop ~/.config/autostart/`
+- If you closed the settings window, restart ChairPlay. The settings address is also in the log, on the line starting `UI at http://127.0.0.1:…`.
+- If **ufw** or **firewalld** is on, the Get started screen offers to add the needed rules for you.
+
+### Update
+
+```bash
+cd ~/ChairPlay
+git pull --recurse-submodules
+scripts/build-linux.sh --install
+```
+
+Your settings, pairing and MFi files in `~/.local/share/ChairPlay` are kept.
+
+### Uninstall
+
+```bash
+sudo apt remove chairplay
+rm -rf ~/.local/share/ChairPlay   # optional: also delete settings, keys, MFi files and logs
+```
+
+## Troubleshooting
+
+First run `scripts/check-linux.sh`, then look at the newest log in `~/.local/share/ChairPlay/logs/`. For more detail,
+set **Log level** to **Info** on the Experiments page.
+
+| Problem | Fix |
+| --- | --- |
+| `Cannot read BlueZ's devices` | `sudo systemctl enable --now bluetooth` and `rfkill unblock bluetooth` |
+| `No paired phone` | Pair the iPhone (Install step 4) |
+| `MFi files not found` | Put `identity.pk8` and `certificate.p7b` in `~/.local/share/ChairPlay/offline-mfi/` |
+| Bluetooth works, but CarPlay never appears | Check that the iPhone and the PC are on the same router, the network isn't a guest network, the Wi-Fi password is correct, and the firewall allows ChairPlay |
+| No sound | Install `pipewire-alsa` (PipeWire) or `libasound2-plugins` (PulseAudio) |
+| The `.deb` won't install on another PC | Build it on the PC that will run it |
+
+**The full installation, setup and troubleshooting guide is in [docs/LINUX.md](docs/LINUX.md).**
+
+---
+
+## Credits and license
+
+- **[ChairPlay](https://github.com/NumberOneBot/ChairPlay)** by Oleksiy Strelets (NumberOneBot) wrote everything in
+  this app; this port only adds the Linux parts.
+- ChairPlay is built on **[DiPlay](https://github.com/shihabal3amri/DiPlay)** by shihabal3amri, which is based on
+  **[xcertplay](https://github.com/shilapi/xcertplay)** by shilapi.
+- The HUD's 3D maneuvers are from LuKa's [mib2q-carplay-rgi](https://github.com/luka-dev/mib2q-carplay-rgi).
+  The notices for bundled libraries are in [THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES).
+
+Licensed under **GPL-3.0**, like the original ([LICENSE](LICENSE)).
+
+CarPlay, iPhone, AirPlay and Siri are trademarks of Apple Inc. This project is not affiliated with Apple. No Apple MFi
+identity is stored in this repository.
