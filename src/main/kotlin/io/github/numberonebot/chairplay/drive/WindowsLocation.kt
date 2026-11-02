@@ -1,3 +1,10 @@
+// ====================================================================================================
+//   UNOFFICIAL LINUX (POP!_OS) PORT: this file is from ChairPlay by Oleksiy Strelets
+//   (https://github.com/NumberOneBot/ChairPlay, GPL-3.0) and was MODIFIED on 2026-11-02 for an
+//   unofficial, personal-use port to Pop!_OS / Ubuntu Linux. Not affiliated with the original
+//   project. See LINUX-PORT-NOTICE.md for what changed.
+// ====================================================================================================
+
 package io.github.numberonebot.chairplay.drive
 
 import java.io.File
@@ -38,6 +45,8 @@ object WindowsLocation {
 
     /** Asks Windows; blocks for up to about twice [WAIT_SECONDS]. */
     fun read(): Result {
+        // Linux has no location service every desktop runs (GeoClue needs an agent and a provider): enter the place.
+        if (!io.github.numberonebot.chairplay.Host.isWindows) return Unknown
         val encoded = Base64.getEncoder().encodeToString(SCRIPT.toByteArray(Charsets.UTF_16LE))
         // A file rather than a pipe, so a PowerShell that hangs cannot hold the caller past the timeout.
         val output = File.createTempFile("chairplay-location", ".txt")

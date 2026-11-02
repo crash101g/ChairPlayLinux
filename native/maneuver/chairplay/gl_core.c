@@ -1,4 +1,12 @@
 /*
+ * ====================================================================================================
+ *   UNOFFICIAL LINUX (POP!_OS) PORT: this file is from ChairPlay by Oleksiy Strelets
+ *   (https://github.com/NumberOneBot/ChairPlay, GPL-3.0) and was MODIFIED on 2026-11-02 for an
+ *   unofficial, personal-use port to Pop!_OS / Ubuntu Linux. Not affiliated with the original
+ *   project. See LINUX-PORT-NOTICE.md for what changed.
+ * ====================================================================================================
+ */
+/*
  * ChairPlay: GL loader and the core-profile wrappers described in gl_core.h.
  *
  * Part of ChairPlay, under the GNU GPL v3 (LICENSE in the repository root).
@@ -13,6 +21,7 @@
 CR_GL_FUNCTIONS(CR_GL_DEFINE)
 #undef CR_GL_DEFINE
 
+#ifdef _WIN32
 static void *proc(const char *name) {
     void *p = (void *)wglGetProcAddress(name);
     /* Some drivers return small values instead of NULL for a missing entry point. */
@@ -22,6 +31,37 @@ static void *proc(const char *name) {
     }
     return p;
 }
+#else
+#include <dlfcn.h>
+
+/* GLFW makes a GLX context on X11 and an EGL one on Wayland: ask the one that is current. */
+static void *proc(const char *name) {
+    static int looked;
+    static void *(*glx_proc)(const unsigned char *);
+    static void *(*glx_current)(void);
+    static void *(*egl_proc)(const char *);
+    static void *(*egl_current)(void);
+    if (!looked) {
+        looked = 1;
+        void *gl = dlopen("libGL.so.1", RTLD_LAZY | RTLD_GLOBAL);
+        if (gl) {
+            glx_proc = (void *(*)(const unsigned char *))dlsym(gl, "glXGetProcAddressARB");
+            glx_current = (void *(*)(void))dlsym(gl, "glXGetCurrentContext");
+        }
+        void *egl = dlopen("libEGL.so.1", RTLD_LAZY | RTLD_GLOBAL);
+        if (egl) {
+            egl_proc = (void *(*)(const char *))dlsym(egl, "eglGetProcAddress");
+            egl_current = (void *(*)(void))dlsym(egl, "eglGetCurrentContext");
+        }
+    }
+    void *p = NULL;
+    if (glx_proc && glx_current && glx_current()) p = glx_proc((const unsigned char *)name);
+    else if (egl_proc && egl_current && egl_current()) p = egl_proc(name);
+    else if (glx_proc) p = glx_proc((const unsigned char *)name);
+    if (!p) p = dlsym(RTLD_DEFAULT, name);
+    return p;
+}
+#endif
 
 int cr_gl_load(const char **missing) {
 #define CR_GL_LOAD(type, name) \

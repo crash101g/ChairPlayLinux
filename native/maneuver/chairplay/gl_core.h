@@ -1,4 +1,12 @@
 /*
+ * ====================================================================================================
+ *   UNOFFICIAL LINUX (POP!_OS) PORT: this file is from ChairPlay by Oleksiy Strelets
+ *   (https://github.com/NumberOneBot/ChairPlay, GPL-3.0) and was MODIFIED on 2026-11-02 for an
+ *   unofficial, personal-use port to Pop!_OS / Ubuntu Linux. Not affiliated with the original
+ *   project. See LINUX-PORT-NOTICE.md for what changed.
+ * ====================================================================================================
+ */
+/*
  * ChairPlay: the GL the maneuver renderer sees, inside an OpenGL 3.3 core profile context on Windows.
  *
  * The renderer is written for OpenGL ES 2 and desktop GL 2.1: shaders only, no fixed function, but it
@@ -10,17 +18,20 @@
  *   glShaderSource: the source becomes GLSL 3.30 core ("#version 330 core", in/out for
  *     attribute/varying, texture for texture2D, an out variable for gl_FragColor).
  *
- * opengl32.dll exports only GL 1.1; everything newer is loaded by cr_gl_load with the context current.
+ * opengl32.dll exports only GL 1.1; everything newer is loaded by cr_gl_load with the context current. On Linux the
+ * entry points come from GLX (or EGL, when the context is one) through libGL.so.1 and libEGL.so.1.
  *
  * Part of ChairPlay, under the GNU GPL v3 (LICENSE in the repository root).
  */
 #ifndef CHAIRPLAY_GL_CORE_H
 #define CHAIRPLAY_GL_CORE_H
 
+#ifdef _WIN32
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif
 #include <windows.h>
+#endif
 #include <GL/gl.h>
 #include <GL/glext.h>
 

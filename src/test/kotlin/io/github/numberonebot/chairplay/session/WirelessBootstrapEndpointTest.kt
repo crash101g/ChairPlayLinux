@@ -1,3 +1,10 @@
+// ====================================================================================================
+//   UNOFFICIAL LINUX (POP!_OS) PORT: this file is from ChairPlay by Oleksiy Strelets
+//   (https://github.com/NumberOneBot/ChairPlay, GPL-3.0) and was MODIFIED on 2026-11-02 for an
+//   unofficial, personal-use port to Pop!_OS / Ubuntu Linux. Not affiliated with the original
+//   project. See LINUX-PORT-NOTICE.md for what changed.
+// ====================================================================================================
+
 package io.github.numberonebot.chairplay.session
 
 import com.shilapi.xcertplay.airplay.AirPlayConfig
@@ -54,6 +61,7 @@ class WirelessBootstrapEndpointTest : WirelessBootstrapFixture() {
 
     @Test
     fun `firewall hint names the port`() {
+        org.junit.Assume.assumeTrue(io.github.numberonebot.chairplay.Host.isWindows)
         val hint = firewallHint(7000, "C:\\x\\chairplay.exe")
 
         assertTrue(hint, "localport=7000" in hint)

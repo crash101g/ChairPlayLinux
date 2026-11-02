@@ -1,3 +1,10 @@
+// ====================================================================================================
+//   UNOFFICIAL LINUX (POP!_OS) PORT: this file is from ChairPlay by Oleksiy Strelets
+//   (https://github.com/NumberOneBot/ChairPlay, GPL-3.0) and was MODIFIED on 2026-11-02 for an
+//   unofficial, personal-use port to Pop!_OS / Ubuntu Linux. Not affiliated with the original
+//   project. See LINUX-PORT-NOTICE.md for what changed.
+// ====================================================================================================
+
 package io.github.numberonebot.chairplay.ui
 
 import com.sun.jna.platform.win32.Advapi32Util
@@ -10,6 +17,7 @@ import java.util.Properties
  * comes from the build number (22000 and later are Windows 11).
  */
 fun windowsVersion(): String {
+    if (!io.github.numberonebot.chairplay.Host.isWindows) return io.github.numberonebot.chairplay.linux.LinuxDesktop.systemName()
     val key = "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion"
     fun value(name: String) = runCatching { Advapi32Util.registryGetStringValue(WinReg.HKEY_LOCAL_MACHINE, key, name) }.getOrNull()
     val build = value("CurrentBuildNumber") ?: return System.getProperty("os.name")

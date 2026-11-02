@@ -1,3 +1,10 @@
+// ====================================================================================================
+//   UNOFFICIAL LINUX (POP!_OS) PORT: this file is from ChairPlay by Oleksiy Strelets
+//   (https://github.com/NumberOneBot/ChairPlay, GPL-3.0) and was MODIFIED on 2026-11-02 for an
+//   unofficial, personal-use port to Pop!_OS / Ubuntu Linux. Not affiliated with the original
+//   project. See LINUX-PORT-NOTICE.md for what changed.
+// ====================================================================================================
+
 package io.github.numberonebot.chairplay.network
 
 import com.shilapi.xcertplay.network.WirelessHotspotBackend
@@ -13,7 +20,7 @@ import java.net.NetworkInterface
 class DesktopNetwork(
     private val saved: SavedWifi,
     private val selected: String,
-    private val wlan: () -> List<WlanConnection> = { runCatching { WlanApi.currentConnections() }.getOrDefault(emptyList()) },
+    private val wlan: () -> List<WlanConnection> = { runCatching { HostWlan.currentConnections() }.getOrDefault(emptyList()) },
     private val nics: () -> List<NicSnapshot> = {
         NetworkInterface.getNetworkInterfaces().toList().map {
             NicSnapshot(it.displayName, it.name, it.inetAddresses.toList(), it.isUp)

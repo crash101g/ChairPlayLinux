@@ -1,3 +1,24 @@
+> [!WARNING]
+> # ⚠️ Unofficial Linux port (Ubuntu, Pop!_OS, Mint, Debian…) — this is NOT the original ChairPlay
+>
+> **ChairPlay is not my project.** It is written and maintained by **Oleksiy Strelets ([NumberOneBot](https://github.com/NumberOneBot))**:
+> **https://github.com/NumberOneBot/ChairPlay**. The original is a Windows app.
+>
+> This repository is an **unofficial port of ChairPlay to Ubuntu-family Linux (Ubuntu, Pop!_OS, Linux Mint, Kubuntu,
+> Zorin, elementary, Debian…) that I made for my own personal use**.
+> I'm sharing it as-is, in case it helps someone else. It is **not affiliated with, reviewed, or endorsed by** the ChairPlay
+> author, DiPlay, xcertplay, or Apple, and it is **not supported**.
+>
+> - **Please do not report problems with this port to the original ChairPlay project.** Its author does not ship or support Linux.
+> - Everything that is good here is the original author's work (and DiPlay's and xcertplay's). The Linux-specific changes are
+>   listed in [LINUX-PORT-NOTICE.md](LINUX-PORT-NOTICE.md). **Full installation and setup guide: [docs/LINUX.md](docs/LINUX.md).**
+> - Licensed **GPL-3.0**, like the original ([LICENSE](LICENSE)). No Apple MFi identity is included; you need your own.
+> - If you use Windows, get the real thing from the [original project's releases](https://github.com/NumberOneBot/ChairPlay/releases).
+>
+> *The rest of this README is the original project's, unchanged except for one line pointing to the Linux guide.*
+
+---
+
 <p align="center">
   <img src="packaging/icon/chairplay-1024.png" alt="ChairPlay app icon" width="128" height="128">
 </p>
@@ -30,6 +51,9 @@ Useful for building and testing CarPlay apps and navigation without a car, for d
 - **One router for the PC and the iPhone.** Connect the iPhone by Wi-Fi and the PC by Wi-Fi or Ethernet. The network must let devices see each other: most home networks do, guest networks usually don't. It must use WPA2 or no password; WPA3-only networks don't work yet.
 
 With Ethernet, ChairPlay selects a single available adapter automatically and offers a choice when there are several. See [Ethernet setup](docs/ETHERNET.md).
+
+**On Linux?** *(unofficial port, not part of the original project)* See [ChairPlay on Linux](docs/LINUX.md) to build,
+install and set it up on Ubuntu, Pop!_OS, Linux Mint, Debian and other Ubuntu-family systems.
 
 ## Get started
 

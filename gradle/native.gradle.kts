@@ -1,3 +1,10 @@
+// ====================================================================================================
+//   UNOFFICIAL LINUX (POP!_OS) PORT: this file is from ChairPlay by Oleksiy Strelets
+//   (https://github.com/NumberOneBot/ChairPlay, GPL-3.0) and was MODIFIED on 2026-11-02 for an
+//   unofficial, personal-use port to Pop!_OS / Ubuntu Linux. Not affiliated with the original
+//   project. See LINUX-PORT-NOTICE.md for what changed.
+// ====================================================================================================
+
 import java.net.URI
 import java.nio.file.FileSystemException
 import java.nio.file.Files
@@ -26,6 +33,10 @@ val zigExe: File = zigRoot.resolve("$zigName/zig.exe")
 project.extra["zigVersion"] = zigVersion
 project.extra["zigRoot"] = zigRoot
 project.extra["zigExe"] = zigExe
+
+// Linux builds the same C and C++ parts with the system's gcc into lib*.so (see the end of this file); zig and the
+// Windows targets are for Windows builds only.
+val linuxBuild = project.extra["linuxBuild"] as Boolean
 
 tasks.register("installZig") {
     description = "Downloads zig $zigVersion into the Gradle user home, unless it is there already."
@@ -84,7 +95,7 @@ val speexSources = listOf("speex_echo_jni.c") +
 val nativeDir = layout.buildDirectory.dir("native")
 val javaToolchains = extensions.getByType<JavaToolchainService>()
 
-tasks.register<Exec>("speexEchoDll") {
+if (!linuxBuild) tasks.register<Exec>("speexEchoDll") {
     group = "build"
     description = "Compiles upstream's SpeexDSP echo canceller into build/native/speex_echo.dll."
     dependsOn("installZig")
@@ -133,7 +144,7 @@ val maneuverDefines = listOf("-DPLATFORM_CHAIRPLAY")
 val maneuverCFlags = listOf("-std=gnu99", "-Wall", "-Wextra", "-Wno-unused-parameter", "-include", "chairplay/stderr_capture.h")
 val maneuverCxxFlags = listOf("-std=c++11", "-fno-exceptions", "-fno-rtti", "-Wall")
 
-tasks.register<Exec>("maneuverDll") {
+if (!linuxBuild) tasks.register<Exec>("maneuverDll") {
     group = "build"
     description = "Compiles the HUD's maneuver renderer into build/native/chairplay_maneuver.dll."
     dependsOn("installZig")
@@ -166,6 +177,65 @@ tasks.register<Exec>("maneuverDll") {
         ops.fs.copy {
             from(work.resolve("chairplay_maneuver.dll"))
             into(dll.get().asFile.parentFile)
+        }
+    }
+}
+
+// Linux: gcc and g++ build the same sources with the same flags into libspeex_echo.so and libchairplay_maneuver.so,
+// which System.loadLibrary finds on java.library.path. The maneuver renderer links libGL (GLX, or EGL through
+// libglvnd) and the static libstdc++, so it needs nothing beyond the GL driver. Needs build-essential and libgl-dev.
+if (linuxBuild) {
+    tasks.register<Exec>("speexEchoDll") {
+        group = "build"
+        description = "Compiles upstream's SpeexDSP echo canceller into build/native/libspeex_echo.so."
+        val jni = layout.projectDirectory.dir("upstream/shared/src/main/jni")
+        val jdk = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(17) }.map { it.metadata }
+        val so = nativeDir.map { it.file("libspeex_echo.so") }
+        inputs.files(speexSources.map { jni.file(it) }).withPathSensitivity(PathSensitivity.RELATIVE)
+        inputs.files(fileTree(jni.dir("speexdsp")) { include("**/*.h") }).withPathSensitivity(PathSensitivity.RELATIVE)
+        inputs.property("cflags", speexCflags)
+        inputs.property("jdk", jdk.map { it.javaRuntimeVersion })
+        outputs.file(so)
+        workingDir(jni)
+        doFirst {
+            so.get().asFile.parentFile.mkdirs()
+            val include = jdk.get().installationPath.dir("include").asFile
+            commandLine(
+                listOf("cc", "-shared", "-fPIC") + speexCflags +
+                    listOf("-Ispeexdsp", "-Ispeexdsp/include", "-I${include.path}", "-I${include.resolve("linux").path}") +
+                    speexSources + listOf("-lm", "-o", so.get().asFile.path),
+            )
+        }
+    }
+
+    tasks.register<Exec>("maneuverDll") {
+        group = "build"
+        description = "Compiles the HUD's maneuver renderer into build/native/libchairplay_maneuver.so."
+        val src = layout.projectDirectory.dir("native/maneuver")
+        val jdk = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(17) }.map { it.metadata }
+        val so = nativeDir.map { it.file("libchairplay_maneuver.so") }
+        val work = temporaryDir
+        inputs.files(fileTree(src) { include("**/*.c", "**/*.cpp", "**/*.h", "**/*.hpp") }).withPathSensitivity(PathSensitivity.RELATIVE)
+        inputs.property("flags", maneuverDefines + maneuverCFlags + maneuverCxxFlags)
+        inputs.property("jdk", jdk.map { it.javaRuntimeVersion })
+        outputs.file(so)
+        workingDir(src)
+        doFirst {
+            so.get().asFile.parentFile.mkdirs()
+            val include = jdk.get().installationPath.dir("include").asFile
+            val includes = listOf("-I.", "-Ichairplay", "-I${include.path}", "-I${include.resolve("linux").path}")
+            fun quote(args: List<String>) = args.joinToString(" ") { "'" + it.replace("'", "'\\''") + "'" }
+            val objects = mutableListOf<String>()
+            val steps = mutableListOf<String>()
+            (maneuverCSources.map { it to true } + maneuverCxxSources.map { it to false }).forEach { (file, c) ->
+                val obj = work.resolve(file.replace('/', '_') + ".o").path
+                objects += obj
+                val compiler = if (c) listOf("cc") + maneuverCFlags else listOf("c++") + maneuverCxxFlags
+                steps += quote(compiler + listOf("-c", "-fPIC", "-O2") + maneuverDefines + includes + listOf(file, "-o", obj))
+            }
+            steps += quote(listOf("c++", "-shared", "-o", so.get().asFile.path) + objects +
+                listOf("-static-libstdc++", "-static-libgcc", "-lGL", "-ldl", "-lm"))
+            commandLine("sh", "-ec", steps.joinToString("\n"))
         }
     }
 }

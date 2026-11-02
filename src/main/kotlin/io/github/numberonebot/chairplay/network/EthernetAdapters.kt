@@ -1,3 +1,10 @@
+// ====================================================================================================
+//   UNOFFICIAL LINUX (POP!_OS) PORT: this file is from ChairPlay by Oleksiy Strelets
+//   (https://github.com/NumberOneBot/ChairPlay, GPL-3.0) and was MODIFIED on 2026-11-02 for an
+//   unofficial, personal-use port to Pop!_OS / Ubuntu Linux. Not affiliated with the original
+//   project. See LINUX-PORT-NOTICE.md for what changed.
+// ====================================================================================================
+
 package io.github.numberonebot.chairplay.network
 
 import java.net.Inet4Address
@@ -15,6 +22,7 @@ fun selectEthernet(adapters: List<EthernetAdapter>, selected: String): EthernetA
 /** Windows owns the physical/virtual distinction. Do not guess from localized adapter names. */
 object EthernetAdapters {
     fun current(): List<EthernetAdapter> {
+        if (!io.github.numberonebot.chairplay.Host.isWindows) return io.github.numberonebot.chairplay.linux.LinuxNetwork.ethernet()
         val script = """
             ${'$'}ErrorActionPreference = 'Stop'
             Get-NetAdapter -Physical | Where-Object { ${'$'}_.InterfaceType -eq 6 -and ${'$'}_.Status -eq 'Up' } | ForEach-Object {

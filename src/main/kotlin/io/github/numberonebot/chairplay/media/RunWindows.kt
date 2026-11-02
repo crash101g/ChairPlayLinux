@@ -1,3 +1,10 @@
+// ====================================================================================================
+//   UNOFFICIAL LINUX (POP!_OS) PORT: this file is from ChairPlay by Oleksiy Strelets
+//   (https://github.com/NumberOneBot/ChairPlay, GPL-3.0) and was MODIFIED on 2026-11-02 for an
+//   unofficial, personal-use port to Pop!_OS / Ubuntu Linux. Not affiliated with the original
+//   project. See LINUX-PORT-NOTICE.md for what changed.
+// ====================================================================================================
+
 package io.github.numberonebot.chairplay.media
 
 import io.github.numberonebot.chairplay.appLog
@@ -23,6 +30,7 @@ private const val FADE_FRAME_SECONDS = 0.008
  */
 fun runWindows(main: VideoWindow, vararg others: VideoWindow, pass: () -> Double? = { null }, opened: () -> Unit = {}) {
     glfwErrorCallback(appLog).set()
+    linuxPlatformHint()
     check(glfwInit()) { "cannot initialise GLFW" }
     val open = mutableListOf(main)
     try {
@@ -51,4 +59,16 @@ fun runWindows(main: VideoWindow, vararg others: VideoWindow, pass: () -> Double
         glfwTerminate()
         glfwSetErrorCallback(null)?.free()
     }
+}
+
+/**
+ * On Linux, GLFW 3.4 would pick Wayland where it runs, where a window cannot place itself, set its icon or, on GNOME,
+ * draw a title bar. ChairPlay takes X11 (XWayland on a Wayland desktop) unless CHAIRPLAY_GLFW_PLATFORM=wayland, and
+ * leaves the choice to GLFW when the one it wants is missing.
+ */
+private fun linuxPlatformHint() {
+    if (io.github.numberonebot.chairplay.Host.isWindows) return
+    val want = if (System.getenv("CHAIRPLAY_GLFW_PLATFORM").equals("wayland", ignoreCase = true)) org.lwjgl.glfw.GLFW.GLFW_PLATFORM_WAYLAND
+    else org.lwjgl.glfw.GLFW.GLFW_PLATFORM_X11
+    if (org.lwjgl.glfw.GLFW.glfwPlatformSupported(want)) org.lwjgl.glfw.GLFW.glfwInitHint(org.lwjgl.glfw.GLFW.GLFW_PLATFORM, want)
 }

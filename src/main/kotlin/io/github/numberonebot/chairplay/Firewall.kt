@@ -1,3 +1,10 @@
+// ====================================================================================================
+//   UNOFFICIAL LINUX (POP!_OS) PORT: this file is from ChairPlay by Oleksiy Strelets
+//   (https://github.com/NumberOneBot/ChairPlay, GPL-3.0) and was MODIFIED on 2026-11-02 for an
+//   unofficial, personal-use port to Pop!_OS / Ubuntu Linux. Not affiliated with the original
+//   project. See LINUX-PORT-NOTICE.md for what changed.
+// ====================================================================================================
+
 package io.github.numberonebot.chairplay
 
 import io.github.numberonebot.chairplay.log.AppLog
@@ -20,19 +27,19 @@ internal fun checkFirewall(
     log: AppLog = appLog,
 ): FirewallStatus {
     fun warn(message: String) = log.log(LogLevel.WARNING, message)
-    val hint = "from an administrator prompt:\n" + firewallHint(port, program)
+    val hint = (if (Host.isWindows) "from an administrator prompt:\n" else "in a terminal:\n") + firewallHint(port, program)
     val state = read(program)
     if (state == null) {
-        warn("could not read the Windows Firewall rules; if the iPhone cannot connect, add these $hint")
+        warn("could not read the ${Host.firewallName} rules; if the iPhone cannot connect, add these $hint")
         return FirewallStatus.UNKNOWN
     }
     if (state.off) {
-        log.info("Windows Firewall is off for the networks this PC is on; ChairPlay needs no rule")
+        log.info("${Host.firewallName.replaceFirstChar { it.uppercase() }} is off for the networks this PC is on; ChairPlay needs no rule")
         return FirewallStatus.OFF
     }
     if (!state.allowRule) {
         // Another rule (Windows' own, from its first-run prompt) may let the iPhone in: ours is only missing.
-        warn("no Windows Firewall rule \"$FIREWALL_RULE\"; if the iPhone cannot connect, add it")
+        warn("no ${Host.firewallName} rule \"$FIREWALL_RULE\"; if the iPhone cannot connect, add it")
         warn(hint)
     }
     state.blocking.forEach {

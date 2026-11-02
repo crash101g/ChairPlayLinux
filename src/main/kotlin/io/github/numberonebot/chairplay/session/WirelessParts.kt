@@ -1,3 +1,10 @@
+// ====================================================================================================
+//   UNOFFICIAL LINUX (POP!_OS) PORT: this file is from ChairPlay by Oleksiy Strelets
+//   (https://github.com/NumberOneBot/ChairPlay, GPL-3.0) and was MODIFIED on 2026-11-02 for an
+//   unofficial, personal-use port to Pop!_OS / Ubuntu Linux. Not affiliated with the original
+//   project. See LINUX-PORT-NOTICE.md for what changed.
+// ====================================================================================================
+
 package io.github.numberonebot.chairplay.session
 
 import com.shilapi.xcertplay.airplay.AirPlayConfig
@@ -17,7 +24,7 @@ import com.shilapi.xcertplay.transport.Iap2LocationProvider
 import com.shilapi.xcertplay.transport.Iap2WirelessCarPlayEndpoint
 import com.shilapi.xcertplay.transport.Iap2WirelessControlClient
 import com.shilapi.xcertplay.transport.Iap2WirelessControlResult
-import io.github.numberonebot.chairplay.bluetooth.WindowsBluetooth
+import io.github.numberonebot.chairplay.bluetooth.HostBluetooth
 import io.github.numberonebot.chairplay.bluetooth.selectIphone
 import io.github.numberonebot.chairplay.config.DesktopConfig
 import io.github.numberonebot.chairplay.data.DataSubscriptions
@@ -66,7 +73,7 @@ internal class DesktopParts(private val config: DesktopConfig, private val log: 
         config.currentEthernetAdapter(),
     )
 
-    override fun radioAddress() = WindowsBluetooth.localRadioAddress()
+    override fun radioAddress() = HostBluetooth.localRadioAddress()
 
     override fun media(sink: MediaSink, microphoneEnabled: Boolean) = CarPlayMediaEngine(sink, microphoneEnabled)
 
@@ -82,9 +89,9 @@ internal class DesktopParts(private val config: DesktopConfig, private val log: 
         }
 
     override fun connectIphone(): BlockingDuplexByteStream {
-        val iphone = selectIphone(WindowsBluetooth.pairedDevices(), config.iphoneAddress)
+        val iphone = selectIphone(HostBluetooth.pairedDevices(), config.iphoneAddress)
         log("RFCOMM connecting to ${iphone.name} ${iphone.address}")
-        return WindowsBluetooth.connectRfcomm(iphone.address, IAP2_IPHONE_UUID).toDuplexStream(log)
+        return HostBluetooth.connectRfcomm(iphone.address, IAP2_IPHONE_UUID).toDuplexStream(log)
     }
 
     override fun control(

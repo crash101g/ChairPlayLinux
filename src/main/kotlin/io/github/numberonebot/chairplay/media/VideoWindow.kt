@@ -1,3 +1,10 @@
+// ====================================================================================================
+//   UNOFFICIAL LINUX (POP!_OS) PORT: this file is from ChairPlay by Oleksiy Strelets
+//   (https://github.com/NumberOneBot/ChairPlay, GPL-3.0) and was MODIFIED on 2026-11-02 for an
+//   unofficial, personal-use port to Pop!_OS / Ubuntu Linux. Not affiliated with the original
+//   project. See LINUX-PORT-NOTICE.md for what changed.
+// ====================================================================================================
+
 package io.github.numberonebot.chairplay.media
 
 import io.github.numberonebot.chairplay.config.WindowPlacement
@@ -8,7 +15,6 @@ import io.github.numberonebot.chairplay.config.openingSize
 import io.github.numberonebot.chairplay.input.PointerEvent
 import io.github.numberonebot.chairplay.input.Size
 import org.lwjgl.glfw.GLFW.*
-import org.lwjgl.glfw.GLFWNativeWin32.glfwGetWin32Window
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GLCapabilities
 import org.lwjgl.opengl.GL33C.*
@@ -298,7 +304,7 @@ class VideoWindow(
         // Windows applies it to edge drags only, so a maximized window still fills the screen.
         aspect?.let { glfwSetWindowAspectRatio(window, it.width, it.height) }
         if (restore != null) glfwSetWindowPos(window, restore.x, restore.y)
-        TitleBar.paint(glfwGetWin32Window(window), dialog = !resizable)
+        TitleBar.paint(nativeWindow(window), dialog = !resizable)
         // A remembered or configured size below it grows to it here. It scales with the monitor, as the web view's
         // pages do, and follows the window to a monitor of another scale.
         // A window that keeps the picture's shape stops at the smallest size of that shape covering the minimum, so
@@ -308,14 +314,14 @@ class VideoWindow(
             glfwSetWindowContentScaleCallback(window) { handle, _, _ -> limitSize(handle) }
         }
         if (hideOnClose) {
-            closeSource.watch(glfwGetWin32Window(window))
+            closeSource.watch(nativeWindow(window))
             glfwSetWindowCloseCallback(window) { handle ->
                 glfwSetWindowShouldClose(handle, false)
                 // The close button hides the window; a close asked from outside (taskkill) ends the app.
                 if (closeSource.userClosed()) applyShown(handle, false) else onOutsideClose()
             }
         }
-        if (dragAnywhere) ClientDrag.install(glfwGetWin32Window(window))
+        if (dragAnywhere) ClientDrag.install(nativeWindow(window))
         WindowIcon.apply(window)
         tracker = PlacementTracker(window, restore?.maximized ?: false)
         if (visible) {
@@ -337,7 +343,7 @@ class VideoWindow(
         // by stays white until the mouse lets go.
         glfwSetWindowRefreshCallback(window) { _ -> step() }
         running.set(true)
-        child?.attach(glfwGetWin32Window(window))
+        child?.attach(nativeWindow(window))
     }
 
     private fun limitSize(window: Long) {

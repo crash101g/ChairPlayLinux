@@ -1,4 +1,12 @@
+// ====================================================================================================
+//   UNOFFICIAL LINUX (POP!_OS) PORT: this file is from ChairPlay by Oleksiy Strelets
+//   (https://github.com/NumberOneBot/ChairPlay, GPL-3.0) and was MODIFIED on 2026-11-02 for an
+//   unofficial, personal-use port to Pop!_OS / Ubuntu Linux. Not affiliated with the original
+//   project. See LINUX-PORT-NOTICE.md for what changed.
+// ====================================================================================================
+
 import type { AppState } from './api'
+import { systemName } from './platform'
 
 export type Tone = 'ok' | 'busy' | 'warn' | 'idle'
 
@@ -59,7 +67,7 @@ export function errorHint(message: string, setup: Pick<AppState['setup'], 'mfiFo
     case 'mfi':
       return `Put the MFi identity files (identity.pk8 and certificate.p7b) into ${setup.mfiFolder}.`
     case 'bluetooth':
-      return 'Check that the iPhone is paired in Windows Bluetooth settings, nearby, and has Bluetooth on.'
+      return `Check that the iPhone is paired in ${systemName} Bluetooth settings, nearby, and has Bluetooth on.`
     case 'join':
     case 'wifi':
       return 'Check the Wi-Fi network below, and that this PC is connected to it.'

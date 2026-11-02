@@ -1,3 +1,10 @@
+// ====================================================================================================
+//   UNOFFICIAL LINUX (POP!_OS) PORT: this file is from ChairPlay by Oleksiy Strelets
+//   (https://github.com/NumberOneBot/ChairPlay, GPL-3.0) and was MODIFIED on 2026-11-02 for an
+//   unofficial, personal-use port to Pop!_OS / Ubuntu Linux. Not affiliated with the original
+//   project. See LINUX-PORT-NOTICE.md for what changed.
+// ====================================================================================================
+
 package io.github.numberonebot.chairplay.bluetooth
 
 import com.shilapi.xcertplay.transport.BlockingDuplexByteStream
@@ -8,7 +15,6 @@ import com.sun.jna.Memory
 import com.sun.jna.Native
 import com.sun.jna.Pointer
 import com.sun.jna.ptr.PointerByReference
-import java.io.Closeable
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -45,8 +51,8 @@ object WindowsBluetooth {
         fun closesocket(socket: Long): Int
     }
 
-    private val bluetooth = Native.load("BluetoothApis", BluetoothApis::class.java)
-    private val kernel32 = Native.load("kernel32", Kernel32::class.java)
+    private val bluetooth by lazy { Native.load("BluetoothApis", BluetoothApis::class.java) }
+    private val kernel32 by lazy { Native.load("kernel32", Kernel32::class.java) }
     private val winsock by lazy {
         Native.load("Ws2_32", Winsock::class.java).also {
             val result = it.WSAStartup(0x0202, Memory(512))
@@ -125,7 +131,7 @@ object WindowsBluetooth {
         return RfcommSocket(socket)
     }
 
-    class RfcommSocket internal constructor(private val socket: Long) : Closeable {
+    class RfcommSocket internal constructor(private val socket: Long) : RfcommConnection {
         val inputStream: InputStream = object : InputStream() {
             override fun read(): Int {
                 val one = ByteArray(1)
@@ -161,7 +167,7 @@ object WindowsBluetooth {
             winsock.closesocket(socket)
         }
 
-        fun toDuplexStream(onDiagnostic: (String) -> Unit): BlockingDuplexByteStream =
+        override fun toDuplexStream(onDiagnostic: (String) -> Unit): BlockingDuplexByteStream =
             BluetoothRfcommDuplexStream(
                 object : BluetoothRfcommSocketAccess {
                     override fun inputStream(): InputStream = inputStream

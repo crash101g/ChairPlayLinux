@@ -1,9 +1,18 @@
+// ====================================================================================================
+//   UNOFFICIAL LINUX (POP!_OS) PORT: this file is from ChairPlay by Oleksiy Strelets
+//   (https://github.com/NumberOneBot/ChairPlay, GPL-3.0) and was MODIFIED on 2026-11-02 for an
+//   unofficial, personal-use port to Pop!_OS / Ubuntu Linux. Not affiliated with the original
+//   project. See LINUX-PORT-NOTICE.md for what changed.
+// ====================================================================================================
+
 package io.github.numberonebot.chairplay.ui
 
-import io.github.numberonebot.chairplay.bluetooth.WindowsBluetooth
+import io.github.numberonebot.chairplay.Host
+import io.github.numberonebot.chairplay.bluetooth.HostBluetooth
+import io.github.numberonebot.chairplay.linux.LinuxBrowser
 import io.github.numberonebot.chairplay.bluetooth.pairedIphoneName
 import io.github.numberonebot.chairplay.config.DesktopConfig
-import io.github.numberonebot.chairplay.network.WlanApi
+import io.github.numberonebot.chairplay.network.HostWlan
 import io.github.numberonebot.chairplay.config.SettingsFile
 import io.github.numberonebot.chairplay.config.SetupStore
 import io.github.numberonebot.chairplay.input.ControlsConfig
@@ -67,8 +76,8 @@ class ChairPlayUi(
     val model = UiModel(config.wifi != null, config.autoconnect, config.autoshow, setupDone = SetupStore(dir).done())
 
     private val checks = SetupChecks(
-        pairedIphone = { pairedIphoneName(WindowsBluetooth.pairedDevices(), config.iphoneAddress) },
-        pcWifi = { WlanApi.currentConnections().firstOrNull()?.ssid },
+        pairedIphone = { pairedIphoneName(HostBluetooth.pairedDevices(), config.iphoneAddress) },
+        pcWifi = { HostWlan.currentConnections().firstOrNull()?.ssid },
         ethernet = io.github.numberonebot.chairplay.network.EthernetAdapters::current,
         firewall = readFirewall,
         startFirewall = firewall,
@@ -141,8 +150,8 @@ class ChairPlayUi(
         view = EmbeddedUi(
             server.url,
             showsUi = { model.state.showsUi },
-            backend = { WebView2(userData, debug) },
-            openBrowser = WebView2::openInBrowser,
+            backend = { if (Host.isWindows) WebView2(userData, debug) else LinuxBrowser.NoWebView },
+            openBrowser = if (Host.isWindows) WebView2::openInBrowser else LinuxBrowser::open,
             log = log,
             onEmbedded = { embedded ->
                 controller.embedded = embedded
@@ -153,7 +162,7 @@ class ChairPlayUi(
             EmbeddedUi(
                 server.url.replaceFirst("/?", "/controls?"),
                 showsUi = { true },
-                backend = { WebView2(userData, debug) },
+                backend = { if (Host.isWindows) WebView2(userData, debug) else LinuxBrowser.NoWebView },
                 openBrowser = null,
                 log = { message -> log("controls window: $message") },
                 onEmbedded = {},

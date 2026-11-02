@@ -1,3 +1,10 @@
+// ====================================================================================================
+//   UNOFFICIAL LINUX (POP!_OS) PORT: this file is from ChairPlay by Oleksiy Strelets
+//   (https://github.com/NumberOneBot/ChairPlay, GPL-3.0) and was MODIFIED on 2026-11-02 for an
+//   unofficial, personal-use port to Pop!_OS / Ubuntu Linux. Not affiliated with the original
+//   project. See LINUX-PORT-NOTICE.md for what changed.
+// ====================================================================================================
+
 package io.github.numberonebot.chairplay.network
 
 import com.shilapi.xcertplay.network.HotspotAddressPolicy
@@ -41,7 +48,13 @@ fun hotspotInfoFor(
     val addresses = nic.addresses.filterNot { it.isLoopbackAddress }
     val hostAddress = HotspotAddressPolicy.select(addresses)
         ?: error("Wi-Fi adapter \"${connection.interfaceDescription}\" has no usable IPv4 or link-local IPv6 address")
-    val band = when (connection.channel) {
+    val band = connection.frequencyMHz?.let {
+        when {
+            it < 3000 -> 1
+            it < 5925 -> 2
+            else -> 4
+        }
+    } ?: when (connection.channel) {
         in 1..14 -> 1
         in 32..177 -> 2
         else -> null
@@ -83,6 +96,6 @@ class SameLanNetwork(private val saved: SavedWifi) : WirelessHotspotManager {
         val nics = NetworkInterface.getNetworkInterfaces().toList().map {
             NicSnapshot(it.displayName, it.name, it.inetAddresses.toList(), it.isUp)
         }
-        return hotspotInfoFor(WlanApi.currentConnections(), nics, saved)
+        return hotspotInfoFor(HostWlan.currentConnections(), nics, saved)
     }
 }

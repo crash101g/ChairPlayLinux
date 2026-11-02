@@ -1,3 +1,10 @@
+// ====================================================================================================
+//   UNOFFICIAL LINUX (POP!_OS) PORT: this file is from ChairPlay by Oleksiy Strelets
+//   (https://github.com/NumberOneBot/ChairPlay, GPL-3.0) and was MODIFIED on 2026-11-02 for an
+//   unofficial, personal-use port to Pop!_OS / Ubuntu Linux. Not affiliated with the original
+//   project. See LINUX-PORT-NOTICE.md for what changed.
+// ====================================================================================================
+
 // What is wrong, above the Connection page's settings: the last error, and the setup problems the app finds. Each
 // names the problem, then what to do, then a button for whatever there is to open or copy.
 import { useState, type ReactNode } from 'react'
@@ -5,6 +12,7 @@ import type { AppState, Backend } from '../api'
 import { Message } from '../shell/controls'
 import { ShieldIcon } from '../shell/icons'
 import { errorKind, type ErrorKind } from '../status'
+import { onLinux, firewallName } from '../platform'
 
 /** A path or command to read or copy, and its button beside it. */
 export function CodeLine({ text, children }: { text: string; children: ReactNode }) {
@@ -146,7 +154,11 @@ export function AddRule({ backend }: { backend: Backend }) {
         type="button"
         className="btn small"
         title={
-          waiting ? 'Waiting for your consent' : 'Add an inbound rule for ChairPlay.exe; Windows asks for your consent'
+          waiting
+            ? 'Waiting for your consent'
+            : onLinux
+              ? 'Add the firewall rules for ChairPlay; the system asks for your password'
+              : 'Add an inbound rule for ChairPlay.exe; Windows asks for your consent'
         }
         disabled={waiting}
         onClick={async () => {
@@ -214,7 +226,7 @@ export function SetupMessages({
         <Message
           tone="warn"
           head="No firewall rule for ChairPlay."
-          text="If the iPhone cannot connect, let ChairPlay in through Windows Firewall."
+          text={`If the iPhone cannot connect, let ChairPlay in through ${firewallName}.`}
         >
           <AddRule backend={backend} />
           <CodeLine text={setup.firewallCommands}>

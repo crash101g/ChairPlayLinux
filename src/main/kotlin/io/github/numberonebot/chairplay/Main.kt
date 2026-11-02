@@ -1,3 +1,10 @@
+// ====================================================================================================
+//   UNOFFICIAL LINUX (POP!_OS) PORT: this file is from ChairPlay by Oleksiy Strelets
+//   (https://github.com/NumberOneBot/ChairPlay, GPL-3.0) and was MODIFIED on 2026-11-02 for an
+//   unofficial, personal-use port to Pop!_OS / Ubuntu Linux. Not affiliated with the original
+//   project. See LINUX-PORT-NOTICE.md for what changed.
+// ====================================================================================================
+
 package io.github.numberonebot.chairplay
 
 import com.shilapi.xcertplay.airplay.AirPlaySession
@@ -56,6 +63,11 @@ private const val GPS_PAGE_MILLIS = 250L
 internal fun dataDirectory(): Path {
     val dir = DesktopConfig.appDirectory()
     log("settings and keys: $dir")
+    // A Linux package has no deploy step to write them: the first start writes the default settings, controls and
+    // car icon the folder lacks, as deploy does on Windows.
+    if (!Host.isWindows) runCatching { io.github.numberonebot.chairplay.config.writeAppDefaults(dir) }
+        .onSuccess { if (it.isNotEmpty()) log("wrote the defaults ${it.joinToString()}") }
+        .onFailure { log("could not write the default settings: $it") }
     return dir
 }
 

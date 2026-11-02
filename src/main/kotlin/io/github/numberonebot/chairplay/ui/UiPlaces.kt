@@ -1,3 +1,10 @@
+// ====================================================================================================
+//   UNOFFICIAL LINUX (POP!_OS) PORT: this file is from ChairPlay by Oleksiy Strelets
+//   (https://github.com/NumberOneBot/ChairPlay, GPL-3.0) and was MODIFIED on 2026-11-02 for an
+//   unofficial, personal-use port to Pop!_OS / Ubuntu Linux. Not affiliated with the original
+//   project. See LINUX-PORT-NOTICE.md for what changed.
+// ====================================================================================================
+
 package io.github.numberonebot.chairplay.ui
 
 import java.net.URLEncoder
@@ -25,12 +32,41 @@ internal class UiPlaces(
      */
     fun open(place: String): Boolean {
         if (place !in PLACES) return false
+        if (!io.github.numberonebot.chairplay.Host.isWindows) return runCatching { openOnLinux(place) }
+            .onFailure { log("could not open $place: $it") }
+            .getOrDefault(false)
         return runCatching {
             if (place == "notices") launch(listOf("notepad.exe", setup.settingsFile.resolveSibling("THIRD_PARTY_NOTICES").toString()))
             else launch(listOf("explorer.exe", target(place)))
         }
             .onFailure { log("could not open $place: $it") }
             .isSuccess
+    }
+
+    /**
+     * Linux: a settings page through the desktop's settings app (false when none is installed), the notices from the
+     * installed program's folder, everything else through xdg-open.
+     */
+    private fun openOnLinux(place: String): Boolean {
+        val desktop = io.github.numberonebot.chairplay.linux.LinuxDesktop
+        return when (place) {
+            "bluetooth", "wifi", "firewall", "location", "firewall-rules" -> {
+                val command = desktop.settingsCommand(if (place == "firewall-rules") "firewall" else place) ?: return false
+                launch(command)
+                true
+            }
+            "notices" -> {
+                val beside = setup.settingsFile.resolveSibling("THIRD_PARTY_NOTICES")
+                val installed = System.getProperty("jpackage.app-path")?.let { Path.of(it).parent?.resolveSibling("lib")?.resolve("app")?.resolve("THIRD_PARTY_NOTICES") }
+                val file = listOfNotNull(beside, installed).firstOrNull(Files::isRegularFile) ?: return false
+                launch(listOf("xdg-open", file.toString()))
+                true
+            }
+            else -> {
+                launch(listOf("xdg-open", target(place)))
+                true
+            }
+        }
     }
 
     private fun target(place: String): String = when (place) {

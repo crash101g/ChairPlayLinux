@@ -1,3 +1,10 @@
+// ====================================================================================================
+//   UNOFFICIAL LINUX (POP!_OS) PORT: this file is from ChairPlay by Oleksiy Strelets
+//   (https://github.com/NumberOneBot/ChairPlay, GPL-3.0) and was MODIFIED on 2026-11-02 for an
+//   unofficial, personal-use port to Pop!_OS / Ubuntu Linux. Not affiliated with the original
+//   project. See LINUX-PORT-NOTICE.md for what changed.
+// ====================================================================================================
+
 import icon from '@icons/chairplay-256.png'
 // Official service artwork: https://cdn.buymeacoffee.com/buttons/v2/default-black.png
 import coffeeButton from '../assets/buy-me-a-coffee-dark.png'
@@ -5,6 +12,7 @@ import type { ReactNode } from 'react'
 import type { AppState, Backend, BuildCommit, WindowsPlace } from '../api'
 import { Group, Row } from '../shell/controls'
 import { CopyButton } from './messages'
+import { systemName } from '../platform'
 
 function Commit({ commit }: { commit: BuildCommit | null }) {
   if (!commit) return <span className="hint">Not recorded</span>
@@ -37,7 +45,7 @@ export function AboutPage({
       <div className="about-head">
         <img src={icon} alt="" />
         <span className="about-name">ChairPlay</span>
-        <span className="hint">Wireless CarPlay receiver for Windows</span>
+        <span className="hint">Wireless CarPlay receiver for {systemName}</span>
       </div>
       <Group title="Version" />
       <Row label="Build">
@@ -50,8 +58,12 @@ export function AboutPage({
       <Group title="Credits" />
       <Row label="Author" className="author-credit">
         {link('author', 'Oleksiy Strelets', "Open the author's GitHub profile")}
-        <button type="button" className="coffee-button" title="Open Buy Me a Coffee in your browser"
-          onClick={() => backend.open('buy-me-a-coffee')}>
+        <button
+          type="button"
+          className="coffee-button"
+          title="Open Buy Me a Coffee in your browser"
+          onClick={() => backend.open('buy-me-a-coffee')}
+        >
           <svg className="coffee-filter" width="0" height="0" aria-hidden="true">
             <defs>
               {/* Remove the artwork's #0d0c22 background; its white and yellow foreground stays opaque. */}

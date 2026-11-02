@@ -1,3 +1,10 @@
+// ====================================================================================================
+//   UNOFFICIAL LINUX (POP!_OS) PORT: this file is from ChairPlay by Oleksiy Strelets
+//   (https://github.com/NumberOneBot/ChairPlay, GPL-3.0) and was MODIFIED on 2026-11-02 for an
+//   unofficial, personal-use port to Pop!_OS / Ubuntu Linux. Not affiliated with the original
+//   project. See LINUX-PORT-NOTICE.md for what changed.
+// ====================================================================================================
+
 package io.github.numberonebot.chairplay.session
 
 import com.shilapi.xcertplay.airplay.AirPlaySession
@@ -76,6 +83,7 @@ class AirPlayListener(
  * Windows takes from its dynamic range 49152-65535. JmDNS answers the iPhone's mDNS queries on UDP 5353.
  */
 fun firewallHint(port: Int, programPath: String): String {
+    if (!io.github.numberonebot.chairplay.Host.isWindows) return io.github.numberonebot.chairplay.linux.LinuxFirewall.hint(port)
     val rule = "netsh advfirewall firewall add rule name=\"$FIREWALL_RULE\" dir=in action=allow program=\"$programPath\""
     return "$rule protocol=TCP localport=$port-${port + 10},49152-65535\n" +
         "$rule protocol=UDP localport=49152-65535\n" +

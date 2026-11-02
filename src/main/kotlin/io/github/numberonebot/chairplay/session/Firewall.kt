@@ -1,3 +1,10 @@
+// ====================================================================================================
+//   UNOFFICIAL LINUX (POP!_OS) PORT: this file is from ChairPlay by Oleksiy Strelets
+//   (https://github.com/NumberOneBot/ChairPlay, GPL-3.0) and was MODIFIED on 2026-11-02 for an
+//   unofficial, personal-use port to Pop!_OS / Ubuntu Linux. Not affiliated with the original
+//   project. See LINUX-PORT-NOTICE.md for what changed.
+// ====================================================================================================
+
 package io.github.numberonebot.chairplay.session
 
 import java.io.File
@@ -28,6 +35,7 @@ internal data class FirewallState(val allowRule: Boolean, val blocking: List<Str
  * variable (%ProgramFiles%\...) is not found.
  */
 internal fun readFirewall(program: String): FirewallState? {
+    if (!io.github.numberonebot.chairplay.Host.isWindows) return io.github.numberonebot.chairplay.linux.LinuxFirewall.read()
     val script = """
         [Console]::OutputEncoding = [Text.Encoding]::UTF8
         ${'$'}allow = @(Get-NetFirewallRule -DisplayName ${'$'}env:CHAIRPLAY_RULE -ErrorAction SilentlyContinue |
@@ -77,6 +85,7 @@ internal fun readFirewall(program: String): FirewallState? {
  * refused, a command failed, or nothing came back within five minutes, as a prompt left open would.
  */
 fun addFirewallRules(commands: String): Boolean {
+    if (!io.github.numberonebot.chairplay.Host.isWindows) return io.github.numberonebot.chairplay.linux.LinuxFirewall.addRules(commands)
     val script = """
         try {
             ${'$'}line = ${'$'}env:CHAIRPLAY_COMMANDS -replace "`r?`n", ' && '

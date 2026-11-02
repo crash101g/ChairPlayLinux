@@ -1,3 +1,10 @@
+// ====================================================================================================
+//   UNOFFICIAL LINUX (POP!_OS) PORT: this file is from ChairPlay by Oleksiy Strelets
+//   (https://github.com/NumberOneBot/ChairPlay, GPL-3.0) and was MODIFIED on 2026-11-02 for an
+//   unofficial, personal-use port to Pop!_OS / Ubuntu Linux. Not affiliated with the original
+//   project. See LINUX-PORT-NOTICE.md for what changed.
+// ====================================================================================================
+
 import type { ReactNode } from 'react'
 import type { AppState, Backend } from '../api'
 import { SECURITY_CHOICES } from '../pages/ConnectionPage'
@@ -8,6 +15,7 @@ import { ShieldIcon } from '../shell/icons'
 import type { Settings } from '../shell/useSettings'
 import type { Steps, StepState } from './steps'
 import { NetworkConnection, showNetworkConnection } from '../pages/NetworkConnection'
+import { onLinux } from '../platform'
 
 function Tick() {
   return (
@@ -105,7 +113,9 @@ export function GetStarted(props: {
           ) : (
             <>
               <span>
-                Windows Firewall is on and has no rule for ChairPlay, so it may drop the iPhone's connections.
+                {onLinux
+                  ? "The firewall (ufw or firewalld) is on, and ChairPlay cannot read its rules without root, so it may drop the iPhone's connections. Add these rules if the iPhone cannot connect."
+                  : "Windows Firewall is on and has no rule for ChairPlay, so it may drop the iPhone's connections."}
               </span>
               <AddRule backend={backend} />
               <div className="acts">
@@ -119,7 +129,9 @@ export function GetStarted(props: {
       )}
       <Step n={1 + optionalCount} title="Pair the iPhone" {...steps.pair}>
         <span>
-          Turn on Bluetooth on the iPhone, then pair it with this PC in Settings › Bluetooth &amp; devices › Add device.
+          {onLinux
+            ? "Turn on Bluetooth on the iPhone, then pair it with this PC in the desktop's Settings › Bluetooth."
+            : 'Turn on Bluetooth on the iPhone, then pair it with this PC in Settings › Bluetooth & devices › Add device.'}
         </span>
         <div className="acts">
           <button
@@ -144,9 +156,7 @@ export function GetStarted(props: {
             This PC is on “{problem.pcWifi}”. The iPhone has to join the network this PC is on.
           </span>
         ) : (
-          <span>
-            Sent to the iPhone during Bluetooth pairing
-          </span>
+          <span>Sent to the iPhone during Bluetooth pairing</span>
         )}
         <Row label="Network">
           <Field

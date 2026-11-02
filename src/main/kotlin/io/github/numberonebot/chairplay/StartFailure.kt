@@ -1,3 +1,10 @@
+// ====================================================================================================
+//   UNOFFICIAL LINUX (POP!_OS) PORT: this file is from ChairPlay by Oleksiy Strelets
+//   (https://github.com/NumberOneBot/ChairPlay, GPL-3.0) and was MODIFIED on 2026-11-02 for an
+//   unofficial, personal-use port to Pop!_OS / Ubuntu Linux. Not affiliated with the original
+//   project. See LINUX-PORT-NOTICE.md for what changed.
+// ====================================================================================================
+
 package io.github.numberonebot.chairplay
 
 import com.sun.jna.Library
@@ -39,7 +46,7 @@ internal fun guardStart(
 internal fun startFailureText(error: Throwable, logFile: Path?): String {
     val reason = generateSequence(error) { it.cause }.firstNotNullOfOrNull { it.message?.trim()?.trimEnd('.')?.ifEmpty { null } }
         ?: error.javaClass.simpleName
-    val details = if (logFile != null) "The details are in logs\\${logFile.fileName} in the app folder."
+    val details = if (logFile != null) "The details are in logs${java.io.File.separator}${logFile.fileName} in the app folder."
     else "No log file was written. Report this message at $ISSUES."
     return "ChairPlay could not start: $reason. $details"
 }
@@ -55,5 +62,6 @@ private const val MB_SETFOREGROUND = 0x10000
 
 /** Windows' own message box, as no window of the app is open to show the failure in. */
 private fun showStartFailure(text: String) {
+    if (!Host.isWindows) return io.github.numberonebot.chairplay.linux.LinuxDesktop.showError(text)
     Native.load("user32", MessageBoxes::class.java).MessageBoxW(null, WString(text), WString("ChairPlay"), MB_ICONERROR or MB_SETFOREGROUND)
 }

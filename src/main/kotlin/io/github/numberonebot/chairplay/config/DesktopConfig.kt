@@ -1,3 +1,10 @@
+// ====================================================================================================
+//   UNOFFICIAL LINUX (POP!_OS) PORT: this file is from ChairPlay by Oleksiy Strelets
+//   (https://github.com/NumberOneBot/ChairPlay, GPL-3.0) and was MODIFIED on 2026-11-02 for an
+//   unofficial, personal-use port to Pop!_OS / Ubuntu Linux. Not affiliated with the original
+//   project. See LINUX-PORT-NOTICE.md for what changed.
+// ====================================================================================================
+
 package io.github.numberonebot.chairplay.config
 
 import com.shilapi.xcertplay.airplay.AirPlayConfig
@@ -275,8 +282,15 @@ class DesktopConfig private constructor(private val dir: Path, startedWith: Desk
          * The folder of the packaged exe, whose path jpackage's launcher puts in `jpackage.app-path`: the
          * program and its data live together there. Run any other way (installDist, an IDE), the working directory.
          */
-        fun appDirectory(appPath: String? = System.getProperty("jpackage.app-path")): Path =
-            appPath?.let { Path.of(it).toAbsolutePath().parent } ?: Path.of(System.getProperty("user.dir")).toAbsolutePath()
+        fun appDirectory(appPath: String? = System.getProperty("jpackage.app-path")): Path {
+            // CHAIRPLAY_HOME picks the app folder on any system.
+            System.getenv("CHAIRPLAY_HOME")?.takeIf { it.isNotBlank() }?.let { return Path.of(it).toAbsolutePath() }
+            // On Linux the packaged program lives read-only in /opt, so its data goes to the user's data folder.
+            if (appPath != null && !io.github.numberonebot.chairplay.Host.isWindows) {
+                return io.github.numberonebot.chairplay.linux.LinuxDesktop.privateDataHome()
+            }
+            return appPath?.let { Path.of(it).toAbsolutePath().parent } ?: Path.of(System.getProperty("user.dir")).toAbsolutePath()
+        }
 
         /** wifi.ssid, wifi.passphrase and wifi.security from [settings]; null while wifi.ssid is blank. */
         private fun savedWifi(settings: Properties): SavedWifi? {

@@ -1,3 +1,10 @@
+// ====================================================================================================
+//   UNOFFICIAL LINUX (POP!_OS) PORT: this file is from ChairPlay by Oleksiy Strelets
+//   (https://github.com/NumberOneBot/ChairPlay, GPL-3.0) and was MODIFIED on 2026-11-02 for an
+//   unofficial, personal-use port to Pop!_OS / Ubuntu Linux. Not affiliated with the original
+//   project. See LINUX-PORT-NOTICE.md for what changed.
+// ====================================================================================================
+
 import java.net.URI
 import java.nio.file.FileSystemException
 import java.nio.file.Files
@@ -89,8 +96,24 @@ val installNode by tasks.registering(InstallArchive::class) {
     target = nodeDir
 }
 
+// Linux takes the node on the PATH (22.22 or later, or 24.15 or later, as webui/package-lock.json asks), from
+// NodeSource, nvm or nodejs.org; scripts/build-linux.sh fetches one when there is none.
+val linuxBuild = project.extra["linuxBuild"] as Boolean
+val systemNode: File? = if (!linuxBuild) null else System.getenv("PATH").orEmpty().split(File.pathSeparator)
+    .map { File(it, "node") }.firstOrNull { it.isFile && it.canExecute() }?.canonicalFile
+/** The npm command-line script beside a node: lib/node_modules/npm in a Linux install, node_modules/npm on Windows. */
+val npmCli: File = systemNode?.let { it.parentFile.resolveSibling("lib/node_modules/npm/bin/npm-cli.js") }
+    ?: nodeDir.resolve("node_modules/npm/bin/npm-cli.js")
+
 /** Runs [args] with the pinned node in webui/, with that node first on the PATH for the tools it starts. */
 fun Exec.node(vararg args: String) {
+    if (linuxBuild) {
+        val node = checkNotNull(systemNode) { "No node on the PATH: install Node.js 22.22+ or 24.15+ (see scripts/build-linux.sh)" }
+        workingDir(webui)
+        environment("npm_config_update_notifier", "false")
+        commandLine(listOf(node.path) + args)
+        return
+    }
     dependsOn(installNode)
     workingDir(webui)
     environment("PATH", nodeDir.path + File.pathSeparator + System.getenv("PATH"))
@@ -103,7 +126,7 @@ fun Exec.node(vararg args: String) {
 val npmCi by tasks.registering(Exec::class) {
     group = "build"
     description = "Installs the UI's packages from webui/package-lock.json into webui/node_modules."
-    node(nodeDir.resolve("node_modules/npm/bin/npm-cli.js").path, "ci", "--ignore-scripts", "--no-audit", "--no-fund")
+    node(npmCli.path, "ci", "--ignore-scripts", "--no-audit", "--no-fund")
     inputs.files(webui.file("package.json"), webui.file("package-lock.json")).withPathSensitivity(PathSensitivity.RELATIVE)
     // npm's own record of the install, rather than the many thousand files beside it.
     outputs.file(webui.file("node_modules/.package-lock.json"))
@@ -154,6 +177,8 @@ val webuiTest by tasks.registering(Exec::class) {
 the<SourceSetContainer>()["main"].resources.srcDir(files(webuiResources).builtBy(webuiBuild))
 tasks.named("test") { dependsOn(webuiTest) }
 
+// Windows only: Linux has no WebView2, and opens the page in a browser window (LinuxBrowser).
+if (!linuxBuild) {
 // The webview library (https://github.com/webview/webview, MIT) embeds WebView2 into an existing window; zig's
 // C++ compiler builds it with our few additions (src/native/webview) into chairplay_webview.dll. The headers
 // come from Microsoft's WebView2 SDK on NuGet, whose WebView2Loader.dll ships beside the DLL: the library uses
@@ -165,7 +190,7 @@ val webview2SdkVersion = "1.0.4258.31"
 val webviewSources: File = gradle.gradleUserHomeDir.resolve("caches/chairplay/webview/webview-$webviewVersion")
 val webview2Sdk: File = gradle.gradleUserHomeDir.resolve("caches/chairplay/webview2/microsoft.web.webview2.$webview2SdkVersion")
 
-val installWebviewSources by tasks.registering(InstallArchive::class) {
+val installWebviewSources = tasks.register<InstallArchive>("installWebviewSources") {
     description = "Downloads the webview library's $webviewVersion sources into the Gradle user home."
     url = "https://github.com/webview/webview/archive/refs/tags/$webviewVersion.zip"
     sha256 = "446ec9730ad4a1574f5364a62ec5989e78c8a59d0497082e6fbf6b423654a9bb"
@@ -175,7 +200,7 @@ val installWebviewSources by tasks.registering(InstallArchive::class) {
     target = webviewSources
 }
 
-val installWebView2Sdk by tasks.registering(InstallArchive::class) {
+val installWebView2Sdk = tasks.register<InstallArchive>("installWebView2Sdk") {
     description = "Downloads the WebView2 SDK $webview2SdkVersion (headers and loader) into the Gradle user home."
     url = "https://api.nuget.org/v3-flatcontainer/microsoft.web.webview2/$webview2SdkVersion/microsoft.web.webview2.$webview2SdkVersion.nupkg"
     sha256 = "56f7f4b8bf9aee4b8efefbbdd4f67d5f74ebd1b100ed0806da71bf76af481aa9"
@@ -188,7 +213,7 @@ val zigExe = project.extra["zigExe"] as File
 val zigRoot = project.extra["zigRoot"] as File
 val zigVersion = project.extra["zigVersion"] as String
 
-val webviewDll by tasks.registering(Exec::class) {
+val webviewDll = tasks.register<Exec>("webviewDll") {
     group = "build"
     description = "Compiles the UI's web view host into build/native/chairplay_webview.dll, with WebView2Loader.dll beside it."
     dependsOn("installZig", installWebviewSources, installWebView2Sdk)
@@ -230,3 +255,4 @@ val webviewDll by tasks.registering(Exec::class) {
 tasks.named("test") { dependsOn(webviewDll) }
 tasks.named("run") { dependsOn(webviewDll) }
 the<DistributionContainer>()["main"].contents { from(webviewDll) { into("bin") } }
+}

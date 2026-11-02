@@ -1,3 +1,10 @@
+// ====================================================================================================
+//   UNOFFICIAL LINUX (POP!_OS) PORT: this file is from ChairPlay by Oleksiy Strelets
+//   (https://github.com/NumberOneBot/ChairPlay, GPL-3.0) and was MODIFIED on 2026-11-02 for an
+//   unofficial, personal-use port to Pop!_OS / Ubuntu Linux. Not affiliated with the original
+//   project. See LINUX-PORT-NOTICE.md for what changed.
+// ====================================================================================================
+
 package io.github.numberonebot.chairplay
 
 import io.github.numberonebot.chairplay.log.AppLog
@@ -14,6 +21,8 @@ import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.readText
 
 class FirewallCheckTest {
+    private val firewallCommand = if (Host.isWindows) "netsh advfirewall firewall add rule" else "ufw allow"
+
     private val dir: Path = Files.createTempDirectory("chairplay-firewall")
     private val program = "C:\\Apps\\ChairPlay\\ChairPlay.exe"
 
@@ -31,7 +40,7 @@ class FirewallCheckTest {
         val (status, text) = loggedAtWarning(FirewallState(allowRule = false, blocking = emptyList()))
 
         assertEquals(FirewallStatus.MISSING, status)
-        assertTrue(text, "netsh advfirewall firewall add rule" in text && program in text)
+        assertTrue(text, firewallCommand in text && (!Host.isWindows || program in text))
     }
 
     @Test
@@ -47,6 +56,6 @@ class FirewallCheckTest {
         val (status, text) = loggedAtWarning(null)
 
         assertEquals(FirewallStatus.UNKNOWN, status)
-        assertTrue(text, "netsh advfirewall firewall add rule" in text)
+        assertTrue(text, firewallCommand in text)
     }
 }

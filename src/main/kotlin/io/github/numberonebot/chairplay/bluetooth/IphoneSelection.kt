@@ -1,3 +1,10 @@
+// ====================================================================================================
+//   UNOFFICIAL LINUX (POP!_OS) PORT: this file is from ChairPlay by Oleksiy Strelets
+//   (https://github.com/NumberOneBot/ChairPlay, GPL-3.0) and was MODIFIED on 2026-11-02 for an
+//   unofficial, personal-use port to Pop!_OS / Ubuntu Linux. Not affiliated with the original
+//   project. See LINUX-PORT-NOTICE.md for what changed.
+// ====================================================================================================
+
 package io.github.numberonebot.chairplay.bluetooth
 
 /** Bluetooth major device class "Phone"; AirPods and iPads report other classes. */
@@ -19,7 +26,7 @@ fun selectIphone(paired: List<PairedDevice>, configuredAddress: String?): Paired
     }
     val phones = paired.filter { (it.classOfDevice shr 8) and 0x1F == MAJOR_CLASS_PHONE }
     return phones.singleOrNull() ?: error(
-        if (phones.isEmpty()) "No paired phone; pair the iPhone in Windows Bluetooth settings"
+        if (phones.isEmpty()) "No paired phone; pair the iPhone in ${if (io.github.numberonebot.chairplay.Host.isWindows) "Windows" else "the system's"} Bluetooth settings"
         else "Several paired phones, pass one address: " + phones.joinToString { "${it.name} ${it.address}" },
     )
 }

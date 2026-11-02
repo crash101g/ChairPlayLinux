@@ -1,15 +1,26 @@
+// ====================================================================================================
+//   UNOFFICIAL LINUX (POP!_OS) PORT: this file is from ChairPlay by Oleksiy Strelets
+//   (https://github.com/NumberOneBot/ChairPlay, GPL-3.0) and was MODIFIED on 2026-11-02 for an
+//   unofficial, personal-use port to Pop!_OS / Ubuntu Linux. Not affiliated with the original
+//   project. See LINUX-PORT-NOTICE.md for what changed.
+// ====================================================================================================
+
 import type { AppState, Backend } from '../api'
 import { Group, Row, Slider, Switch, type Choice } from '../shell/controls'
 import { Select } from '../shell/fields'
 import type { Settings } from '../shell/useSettings'
 import { Changed, parts, pendingOf } from './parts'
+import { onLinux } from '../platform'
 
 /**
  * A device list: the Windows default first, then the devices Java Sound lists. A saved device the list lacks (one
  * unplugged, or a part of a name written in the file) stays as chosen, marked as not found.
  */
 function deviceChoices(devices: readonly string[], saved: string): Choice[] {
-  const choices: Choice[] = [['default', 'Windows default'], ...devices.map((name): Choice => [name, name])]
+  const choices: Choice[] = [
+    ['default', onLinux ? 'System default' : 'Windows default'],
+    ...devices.map((name): Choice => [name, name]),
+  ]
   if (saved && saved !== 'default' && !devices.includes(saved)) choices.push([saved, `${saved} (not found)`])
   return choices
 }

@@ -1,3 +1,10 @@
+// ====================================================================================================
+//   UNOFFICIAL LINUX (POP!_OS) PORT: this file is from ChairPlay by Oleksiy Strelets
+//   (https://github.com/NumberOneBot/ChairPlay, GPL-3.0) and was MODIFIED on 2026-11-02 for an
+//   unofficial, personal-use port to Pop!_OS / Ubuntu Linux. Not affiliated with the original
+//   project. See LINUX-PORT-NOTICE.md for what changed.
+// ====================================================================================================
+
 // ChairPlay's build: the app and its tests, with DiPlay's core copied in from upstream/ (gradle/upstream.gradle.kts),
 // the C and C++ parts zig builds (gradle/native.gradle.kts), the web UI and its web view (gradle/web.gradle.kts), and
 // the app image deployed into the app folder (gradle/package.gradle.kts).
@@ -15,26 +22,43 @@ kotlin {
     jvmToolchain(17)
 }
 
+// Linux builds (Ubuntu, Pop!_OS and the like) take the Linux natives, gcc for the C parts (gradle/native.gradle.kts),
+// the system's Node for the web UI (gradle/web.gradle.kts) and make a .deb (gradle/linux-package.gradle.kts).
+// Windows builds are unchanged.
+val linuxBuild = System.getProperty("os.name").startsWith("Linux")
+val arm64 = System.getProperty("os.arch") in setOf("aarch64", "arm64")
+extra["linuxBuild"] = linuxBuild
+val javacppPlatform = when {
+    !linuxBuild -> "windows-x86_64"
+    arm64 -> "linux-arm64"
+    else -> "linux-x86_64"
+}
+val lwjglNatives = when {
+    !linuxBuild -> "natives-windows"
+    arm64 -> "natives-linux-arm64"
+    else -> "natives-linux"
+}
+
 dependencies {
     implementation("org.bouncycastle:bcprov-jdk18on:1.79")
     implementation("org.jmdns:jmdns:3.6.3")
     implementation("org.slf4j:slf4j-jdk14:2.0.7")
     implementation("net.java.dev.jna:jna-platform:5.15.0")
-    // Native classifiers are pinned to windows-x86_64: the *-platform artifacts of javacpp presets pull
-    // every OS, hundreds of megabytes this Windows-only app never loads.
+    // Native classifiers are pinned to the build's own system: the *-platform artifacts of javacpp presets pull
+    // every OS, hundreds of megabytes the app never loads.
     implementation("org.bytedeco:javacpp:1.5.12")
-    implementation("org.bytedeco:javacpp:1.5.12:windows-x86_64")
+    implementation("org.bytedeco:javacpp:1.5.12:$javacppPlatform")
     // 7.1.1 fixes the HEVC WPP slice-thread deadlock in software decoding (FFmpeg 79c47dfd).
     implementation("org.bytedeco:ffmpeg:7.1.1-1.5.12")
-    implementation("org.bytedeco:ffmpeg:7.1.1-1.5.12:windows-x86_64")
+    implementation("org.bytedeco:ffmpeg:7.1.1-1.5.12:$javacppPlatform")
     implementation("org.lwjgl:lwjgl:3.3.4")
     implementation("org.lwjgl:lwjgl-glfw:3.3.4")
     implementation("org.lwjgl:lwjgl-opengl:3.3.4")
     implementation("org.lwjgl:lwjgl-nanovg:3.3.4")
-    runtimeOnly("org.lwjgl:lwjgl:3.3.4:natives-windows")
-    runtimeOnly("org.lwjgl:lwjgl-glfw:3.3.4:natives-windows")
-    runtimeOnly("org.lwjgl:lwjgl-opengl:3.3.4:natives-windows")
-    runtimeOnly("org.lwjgl:lwjgl-nanovg:3.3.4:natives-windows")
+    runtimeOnly("org.lwjgl:lwjgl:3.3.4:$lwjglNatives")
+    runtimeOnly("org.lwjgl:lwjgl-glfw:3.3.4:$lwjglNatives")
+    runtimeOnly("org.lwjgl:lwjgl-opengl:3.3.4:$lwjglNatives")
+    runtimeOnly("org.lwjgl:lwjgl-nanovg:3.3.4:$lwjglNatives")
     testImplementation("junit:junit:4.13.2")
 }
 
@@ -126,5 +150,9 @@ tasks.processResources {
 
 apply(from = "gradle/native.gradle.kts")
 apply(from = "gradle/web.gradle.kts")
-apply(from = "gradle/package.gradle.kts")
-apply(from = "gradle/installer.gradle.kts")
+if (linuxBuild) {
+    apply(from = "gradle/linux-package.gradle.kts")
+} else {
+    apply(from = "gradle/package.gradle.kts")
+    apply(from = "gradle/installer.gradle.kts")
+}

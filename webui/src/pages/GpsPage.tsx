@@ -1,3 +1,10 @@
+// ====================================================================================================
+//   UNOFFICIAL LINUX (POP!_OS) PORT: this file is from ChairPlay by Oleksiy Strelets
+//   (https://github.com/NumberOneBot/ChairPlay, GPL-3.0) and was MODIFIED on 2026-11-02 for an
+//   unofficial, personal-use port to Pop!_OS / Ubuntu Linux. Not affiliated with the original
+//   project. See LINUX-PORT-NOTICE.md for what changed.
+// ====================================================================================================
+
 import { useId } from 'react'
 import type { AppState, Backend, GpsState } from '../api'
 import { keyLabel } from '../ControlsScreen'
@@ -6,6 +13,7 @@ import type { Settings } from '../shell/useSettings'
 import { Compass, HeadingField, PositionFields } from './gpsFields'
 import { Changed, parts, pendingOf } from './parts'
 import { WindowsLocationButton } from './WindowsLocationButton'
+import { onLinux } from '../platform'
 
 /** What the iPhone learns as it connects: whether there is a GPS, and what it sends besides the position. */
 const LINK_KEYS = ['gps.enabled', 'gps.wheel.speed', 'gps.satellites']
@@ -45,9 +53,7 @@ function status(car: GpsState, imperial: boolean) {
   const speed = imperial ? `${Math.round(car.speed / 1.609344)} mph` : `${car.speed} km/h`
   return {
     iphone: car.listening ? `Listening: ${(car.sentences ?? []).join(', ')}; ${updates}` : 'Not listening',
-    going: [speed, `${car.rpm} rpm`, car.gear, car.gamepad ? 'Gamepad connected' : 'No gamepad'].join(
-      ' · ',
-    ),
+    going: [speed, `${car.rpm} rpm`, car.gear, car.gamepad ? 'Gamepad connected' : 'No gamepad'].join(' · '),
   }
 }
 
@@ -125,7 +131,8 @@ export function GpsPage({ state, backend, settings }: { state: AppState; backend
         {/* Where the car is, apart from the car itself, whose own settings grow. */}
         <Group title="Position" />
         <Row>
-          <WindowsLocationButton backend={backend} settings={settings} heading={heading} />
+          {/* Linux has no location service every desktop runs: the coordinates are typed in. */}
+          {!onLinux && <WindowsLocationButton backend={backend} settings={settings} heading={heading} />}
         </Row>
         <Row
           label="Coordinates"

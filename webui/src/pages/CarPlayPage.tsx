@@ -1,7 +1,15 @@
+// ====================================================================================================
+//   UNOFFICIAL LINUX (POP!_OS) PORT: this file is from ChairPlay by Oleksiy Strelets
+//   (https://github.com/NumberOneBot/ChairPlay, GPL-3.0) and was MODIFIED on 2026-11-02 for an
+//   unofficial, personal-use port to Pop!_OS / Ubuntu Linux. Not affiliated with the original
+//   project. See LINUX-PORT-NOTICE.md for what changed.
+// ====================================================================================================
+
 import type { AppState, Backend } from '../api'
 import { Group, Row } from '../shell/controls'
 import type { Settings } from '../shell/useSettings'
 import { ActualSize, Changed, parts, pendingOf, SafeArea, SizeRows } from './parts'
+import { onLinux } from '../platform'
 
 /** Common car and desktop display sizes, the 480 px tall ones first. */
 const PRESETS = [
@@ -82,16 +90,21 @@ export function CarPlayPage({ state, backend, settings }: { state: AppState; bac
           ['h264', 'H264'],
         ])}
       </Row>
-      <Row label="Decoding" title="Hardware decoding automatically falls back to software if the GPU is unavailable or decoding fails">
+      <Row
+        label="Decoding"
+        title="Hardware decoding automatically falls back to software if the GPU is unavailable or decoding fails"
+      >
         {choice('video.decoder', 'Decoding', 'hardware', [
-          ['hardware', 'Hardware', 'Use the GPU for both screens; fall back to software if unavailable or decoding fails'],
+          [
+            'hardware',
+            'Hardware',
+            'Use the GPU for both screens; fall back to software if unavailable or decoding fails',
+          ],
           ['software', 'Software', 'Decode both screens on the CPU'],
         ])}
       </Row>
       <Row className="hint-row">
-        <span className="hint">
-          With H265 selected, both codecs are offered and the iPhone chooses which to use
-        </span>
+        <span className="hint">With H265 selected, both codecs are offered and the iPhone chooses which to use</span>
       </Row>
       <Row className="hint-row">
         <span className="hint">
@@ -101,7 +114,7 @@ export function CarPlayPage({ state, backend, settings }: { state: AppState; bac
       <Group title="Look" note={note(LOOK_KEYS)} />
       <Row label="Theme">
         {choice('display.theme', 'Theme', 'windows', [
-          ['windows', 'Windows'],
+          ['windows', onLinux ? 'System' : 'Windows'],
           ['phone', 'Phone'],
           ['light', 'Light'],
           ['dark', 'Dark'],

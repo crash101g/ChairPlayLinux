@@ -1,3 +1,10 @@
+// ====================================================================================================
+//   UNOFFICIAL LINUX (POP!_OS) PORT: this file is from ChairPlay by Oleksiy Strelets
+//   (https://github.com/NumberOneBot/ChairPlay, GPL-3.0) and was MODIFIED on 2026-11-02 for an
+//   unofficial, personal-use port to Pop!_OS / Ubuntu Linux. Not affiliated with the original
+//   project. See LINUX-PORT-NOTICE.md for what changed.
+// ====================================================================================================
+
 package io.github.numberonebot.chairplay.ui
 
 import io.github.numberonebot.chairplay.drive.GeoPoint
@@ -39,6 +46,7 @@ class UiControllerPlacesTest : UiControllerFixture() {
 
     @Test
     fun `New issue opens GitHub with the details filled in`() {
+        windowsOnly()
         val ui = controller()
         assertTrue(ui.open("issues"))
 
@@ -51,6 +59,7 @@ class UiControllerPlacesTest : UiControllerFixture() {
 
     @Test
     fun `the About page's links open the project's pages, and the notices in Notepad`() {
+        windowsOnly()
         val ui = controller()
         val pages = mapOf(
             "author" to "https://github.com/NumberOneBot",
@@ -99,6 +108,7 @@ class UiControllerPlacesTest : UiControllerFixture() {
     // The screens' links open Windows' own pages; the page names a place the app knows, never a command of its own.
     @Test
     fun `a link opens the Windows page it names, and nothing else`() {
+        windowsOnly()
         val ui = controller()
 
         assertTrue(ui.open("bluetooth"))
@@ -122,6 +132,7 @@ class UiControllerPlacesTest : UiControllerFixture() {
     // Its rules are in the firewall's own console; the shell asks for the administrator's consent it needs.
     @Test
     fun `the firewall's rules open in its console through the shell`() {
+        windowsOnly()
         val ui = controller()
 
         assertTrue(ui.open("firewall-rules"))
@@ -132,6 +143,7 @@ class UiControllerPlacesTest : UiControllerFixture() {
 
     @Test
     fun `the MFi folder opens in File Explorer, made first if it is missing`() {
+        windowsOnly()
         val ui = controller()
 
         assertTrue(ui.open("mfi-folder"))
@@ -154,6 +166,7 @@ class UiControllerPlacesTest : UiControllerFixture() {
     // The Experiments page's Logs: the CarPlay data log's folder and F12's screenshots, in the app folder.
     @Test
     fun `the logs and screenshots folders open in File Explorer, made first if they are missing`() {
+        windowsOnly()
         val ui = controller()
 
         assertTrue(ui.open("logs"))
@@ -168,10 +181,27 @@ class UiControllerPlacesTest : UiControllerFixture() {
 
     @Test
     fun `a page Windows does not open is logged`() {
+        windowsOnly()
         val ui = controller(launch = { throw java.io.IOException("explorer.exe not found") })
 
         assertFalse(ui.open("bluetooth"))
 
         assertTrue(logged.joinToString(), logged.any { "bluetooth" in it && "explorer.exe not found" in it })
+    }
+
+    private fun windowsOnly() = org.junit.Assume.assumeTrue(io.github.numberonebot.chairplay.Host.isWindows)
+
+    private fun linuxOnly() = org.junit.Assume.assumeTrue(!io.github.numberonebot.chairplay.Host.isWindows)
+
+    @Test
+    fun `on Linux folders and web pages open through xdg-open`() {
+        linuxOnly()
+        val ui = controller()
+        assertTrue(ui.open("logs"))
+        assertTrue(ui.open("source"))
+
+        assertEquals(listOf("xdg-open", "xdg-open"), launched.map { it.first() })
+        assertTrue(launched[0][1], launched[0][1].endsWith("logs"))
+        assertEquals("https://github.com/NumberOneBot/ChairPlay", launched[1][1])
     }
 }

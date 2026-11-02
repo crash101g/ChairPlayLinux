@@ -1,3 +1,10 @@
+// ====================================================================================================
+//   UNOFFICIAL LINUX (POP!_OS) PORT: this file is from ChairPlay by Oleksiy Strelets
+//   (https://github.com/NumberOneBot/ChairPlay, GPL-3.0) and was MODIFIED on 2026-11-02 for an
+//   unofficial, personal-use port to Pop!_OS / Ubuntu Linux. Not affiliated with the original
+//   project. See LINUX-PORT-NOTICE.md for what changed.
+// ====================================================================================================
+
 package io.github.numberonebot.chairplay.network
 
 import com.sun.jna.Library
@@ -11,7 +18,16 @@ class WlanConnection(
     val ssid: String,
     val bssid: ByteArray,
     val channel: Int,
+    /** The frequency when the system reports it (Linux), which tells 6 GHz channels from 2.4 GHz ones. */
+    val frequencyMHz: Int? = null,
 )
+
+/** The connected Wi-Fi networks: Windows' Native Wifi API, or NetworkManager (or iw) on Linux. */
+object HostWlan {
+    fun currentConnections(): List<WlanConnection> =
+        if (io.github.numberonebot.chairplay.Host.isWindows) WlanApi.currentConnections()
+        else io.github.numberonebot.chairplay.linux.LinuxNetwork.wifiConnections()
+}
 
 /**
  * The connected Wi-Fi adapters as the Native Wifi API reports them. `netsh wlan` prints localised

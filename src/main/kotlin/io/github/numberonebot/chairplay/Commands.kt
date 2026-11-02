@@ -1,3 +1,10 @@
+// ====================================================================================================
+//   UNOFFICIAL LINUX (POP!_OS) PORT: this file is from ChairPlay by Oleksiy Strelets
+//   (https://github.com/NumberOneBot/ChairPlay, GPL-3.0) and was MODIFIED on 2026-11-02 for an
+//   unofficial, personal-use port to Pop!_OS / Ubuntu Linux. Not affiliated with the original
+//   project. See LINUX-PORT-NOTICE.md for what changed.
+// ====================================================================================================
+
 package io.github.numberonebot.chairplay
 
 import com.shilapi.xcertplay.iap2.session.Iap2Session
@@ -7,7 +14,7 @@ import com.shilapi.xcertplay.transport.Iap2IdentificationClient
 import com.shilapi.xcertplay.transport.Iap2WirelessIdentification
 import com.shilapi.xcertplay.transport.Iap2WirelessLinkRole
 import com.shilapi.xcertplay.transport.forWirelessLink
-import io.github.numberonebot.chairplay.bluetooth.WindowsBluetooth
+import io.github.numberonebot.chairplay.bluetooth.HostBluetooth
 import io.github.numberonebot.chairplay.bluetooth.selectIphone
 import io.github.numberonebot.chairplay.log.AppLog
 import io.github.numberonebot.chairplay.log.routeAllOutput
@@ -42,10 +49,13 @@ internal fun runCommand(
 }
 
 internal fun listDevices() {
-    log("radio ${WindowsBluetooth.localRadioAddress()}")
-    WindowsBluetooth.pairedDevices().forEach {
-        log("${it.address}  class=0x%06X  ${it.name}".format(it.classOfDevice))
-    }
+    // Without Bluetooth the sound devices are still worth listing.
+    runCatching {
+        log("radio ${HostBluetooth.localRadioAddress()}")
+        HostBluetooth.pairedDevices().forEach {
+            log("${it.address}  class=0x%06X  ${it.name}".format(it.classOfDevice))
+        }
+    }.onFailure { log("Bluetooth: ${it.message}") }
     // The names audio.output and audio.input match against (Java Sound cuts them to 31 characters).
     log("audio outputs:")
     AudioDevices.outputs().forEach { log("  ${it.name}") }
@@ -59,14 +69,14 @@ internal fun listDevices() {
  * handing the iPhone any Wi-Fi endpoint.
  */
 internal fun probeBluetooth(address: String?): Boolean {
-    val radio = WindowsBluetooth.localRadioAddress()
-    val iphone = selectIphone(WindowsBluetooth.pairedDevices(), address)
+    val radio = HostBluetooth.localRadioAddress()
+    val iphone = selectIphone(HostBluetooth.pairedDevices(), address)
     log("radio $radio, target ${iphone.name} ${iphone.address}")
 
     val mfiDirectory = dataDirectory().resolve("offline-mfi").toFile()
     val mfi = LocalMfiAuthenticationClient.load(mfiDirectory) { log("local MFi identity signs ($it-byte signature)") }
 
-    val socket = WindowsBluetooth.connectRfcomm(iphone.address, IAP2_IPHONE_UUID)
+    val socket = HostBluetooth.connectRfcomm(iphone.address, IAP2_IPHONE_UUID)
     log("RFCOMM connected to the iAP2 service")
     val stream = socket.toDuplexStream(::log)
     val session = Iap2Session.openWireless(stream, traceContext = "probe", onTrace = { log(redactTrace(it)) })
@@ -80,7 +90,7 @@ internal fun probeBluetooth(address: String?): Boolean {
         log("iAP2 identification accepted")
         Iap2MfiAuthenticationClient(mfi).run(session, 30_000L, ::log)
         log("iAP2 authentication accepted")
-        log("GO: the iPhone accepted ChairPlay over Windows Bluetooth")
+        log("GO: the iPhone accepted ChairPlay over ${if (Host.isWindows) "Windows" else "Linux"} Bluetooth")
         return true
     } catch (error: Exception) {
         log("NO-GO: ${error.javaClass.simpleName}: ${error.message}")

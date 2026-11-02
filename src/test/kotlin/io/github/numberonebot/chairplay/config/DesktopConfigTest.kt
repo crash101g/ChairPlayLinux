@@ -1,3 +1,10 @@
+// ====================================================================================================
+//   UNOFFICIAL LINUX (POP!_OS) PORT: this file is from ChairPlay by Oleksiy Strelets
+//   (https://github.com/NumberOneBot/ChairPlay, GPL-3.0) and was MODIFIED on 2026-11-02 for an
+//   unofficial, personal-use port to Pop!_OS / Ubuntu Linux. Not affiliated with the original
+//   project. See LINUX-PORT-NOTICE.md for what changed.
+// ====================================================================================================
+
 package io.github.numberonebot.chairplay.config
 
 import com.shilapi.xcertplay.airplay.AirPlayInfoPlist
@@ -235,9 +242,20 @@ class DesktopConfigTest {
     // The packaged exe keeps its settings, keys and pairings in its own folder.
     @Test
     fun `the app folder is the packaged exe's folder`() {
+        org.junit.Assume.assumeTrue(io.github.numberonebot.chairplay.Host.isWindows)
         val exe = Path.of("C:", "Users", "dark", "Documents", "ChairPlayApp", "ChairPlay.exe")
 
         assertEquals(exe.parent, DesktopConfig.appDirectory(exe.toString()))
+    }
+
+    // On Linux the packaged program is read-only in /opt: its data goes to the user's data folder.
+    @Test
+    fun `on Linux the packaged app keeps its files in the user's data folder`() {
+        org.junit.Assume.assumeTrue(io.github.numberonebot.chairplay.Host.isLinux && System.getenv("CHAIRPLAY_HOME") == null)
+        assertEquals(
+            io.github.numberonebot.chairplay.linux.LinuxDesktop.dataHome(),
+            DesktopConfig.appDirectory("/opt/chairplay/bin/ChairPlay"),
+        )
     }
 
     // Started another way (installDist, an IDE), the app keeps its files in the working directory.

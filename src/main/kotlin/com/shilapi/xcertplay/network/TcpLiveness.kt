@@ -1,3 +1,10 @@
+// ====================================================================================================
+//   UNOFFICIAL LINUX (POP!_OS) PORT: this file is from ChairPlay by Oleksiy Strelets
+//   (https://github.com/NumberOneBot/ChairPlay, GPL-3.0) and was MODIFIED on 2026-11-02 for an
+//   unofficial, personal-use port to Pop!_OS / Ubuntu Linux. Not affiliated with the original
+//   project. See LINUX-PORT-NOTICE.md for what changed.
+// ====================================================================================================
+
 package com.shilapi.xcertplay.network
 
 import com.sun.jna.Library
@@ -35,10 +42,47 @@ object TcpLiveness {
 
     private val winsock by lazy { Native.load("Ws2_32", Winsock::class.java) }
 
+    // Linux (<netinet/tcp.h>): the same timing, with TCP_USER_TIMEOUT in milliseconds for TCP_MAXRT's seconds.
+    private val windows = System.getProperty("os.name").orEmpty().startsWith("Windows")
+    private const val LINUX_TCP_KEEPIDLE = 4
+    private const val LINUX_TCP_KEEPINTVL = 5
+    private const val LINUX_TCP_KEEPCNT = 6
+    private const val LINUX_TCP_USER_TIMEOUT = 18
+
+    private interface Libc : Library {
+        fun setsockopt(fd: Int, level: Int, name: Int, value: IntByReference, length: Int): Int
+        fun getsockopt(fd: Int, level: Int, name: Int, value: IntByReference, length: IntByReference): Int
+    }
+
+    private val libc by lazy { Native.load("c", Libc::class.java) }
+
+    private fun linuxSet(fd: Int, name: Int, value: Int) {
+        if (libc.setsockopt(fd, IPPROTO_TCP, name, IntByReference(value), 4) != 0) {
+            throw IOException("setsockopt($name) failed: errno ${Native.getLastError()}")
+        }
+    }
+
+    private fun linuxGet(fd: Int, name: Int): Int {
+        val value = IntByReference()
+        if (libc.getsockopt(fd, IPPROTO_TCP, name, value, IntByReference(4)) != 0) {
+            throw IOException("getsockopt($name) failed: errno ${Native.getLastError()}")
+        }
+        return value.value
+    }
+
     fun configure(socket: Socket, diagnostic: (String) -> Unit) {
         socket.keepAlive = true
         try {
             val handle = handle(socket)
+            if (!windows) {
+                val fd = handle.toInt()
+                linuxSet(fd, LINUX_TCP_KEEPIDLE, 10)
+                linuxSet(fd, LINUX_TCP_KEEPINTVL, 3)
+                linuxSet(fd, LINUX_TCP_KEEPCNT, 3)
+                linuxSet(fd, LINUX_TCP_USER_TIMEOUT, 20_000)
+                diagnostic("TCP peer health enabled idle=10s interval=3s count=3 deadline=20000ms; no video-idle timeout")
+                return
+            }
             set(handle, TCP_KEEPIDLE, 10)
             set(handle, TCP_KEEPINTVL, 3)
             set(handle, TCP_KEEPCNT, 3)
@@ -53,6 +97,13 @@ object TcpLiveness {
     /** Idle, interval, count and deadline as Winsock reports them back; for tests. */
     internal fun timing(socket: Socket): List<Int> {
         val handle = handle(socket)
+        if (!windows) {
+            val fd = handle.toInt()
+            return listOf(
+                linuxGet(fd, LINUX_TCP_KEEPIDLE), linuxGet(fd, LINUX_TCP_KEEPINTVL), linuxGet(fd, LINUX_TCP_KEEPCNT),
+                linuxGet(fd, LINUX_TCP_USER_TIMEOUT) / 1000,
+            )
+        }
         return listOf(TCP_KEEPIDLE, TCP_KEEPINTVL, TCP_KEEPCNT, TCP_MAXRT).map { name ->
             val value = IntByReference()
             if (winsock.getsockopt(handle, IPPROTO_TCP, name, value, IntByReference(4)) != 0) {

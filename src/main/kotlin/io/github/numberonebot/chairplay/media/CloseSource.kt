@@ -1,3 +1,10 @@
+// ====================================================================================================
+//   UNOFFICIAL LINUX (POP!_OS) PORT: this file is from ChairPlay by Oleksiy Strelets
+//   (https://github.com/NumberOneBot/ChairPlay, GPL-3.0) and was MODIFIED on 2026-11-02 for an
+//   unofficial, personal-use port to Pop!_OS / Ubuntu Linux. Not affiliated with the original
+//   project. See LINUX-PORT-NOTICE.md for what changed.
+// ====================================================================================================
+
 package io.github.numberonebot.chairplay.media
 
 import com.sun.jna.CallbackReference
@@ -26,7 +33,7 @@ internal class CloseSource {
     }
 
     /** Whether the close being handled followed the close button or Alt+F4; asked once per close. */
-    fun userClosed(): Boolean = asked.also { asked = false }
+    fun userClosed(): Boolean = if (!io.github.numberonebot.chairplay.Host.isWindows) true else asked.also { asked = false }
 
     /** Sees the window's WM_SYSCOMMANDs ahead of its own procedure (GLFW's), which still gets every message. */
     fun watch(hwnd: Long) {
