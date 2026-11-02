@@ -147,6 +147,9 @@ cp /path/to/identity.pk8 /path/to/certificate.p7b ~/.local/share/ChairPlay/offli
 scripts/check-linux.sh
 ```
 
+If you installed the downloaded `.deb`, you don't have the scripts folder. Fetch the script first:
+`curl -fsSLO https://raw.githubusercontent.com/crash101g/ChairPlayLinux/linux-port/scripts/check-linux.sh && bash check-linux.sh`.
+
 This script only reads your system and changes nothing. It checks Bluetooth, the paired iPhone, the MFi files, the
 network, the firewall, sound and OpenGL, and tells you how to fix each **✘** it finds.
 
