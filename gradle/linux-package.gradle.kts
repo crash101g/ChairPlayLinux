@@ -61,6 +61,10 @@ val appImageModules = listOf(
 val jpackageInput = layout.buildDirectory.dir("jpackage-input")
 val jpackageOut = layout.buildDirectory.dir("jpackage")
 val packageVersion = appVersion ?: "0.0.0"
+// The .deb's revision (the 2 of 1.0.4-2), from -Pchairplay.linuxRelease=N: a port fix on the same ChairPlay version.
+val linuxRelease = providers.gradleProperty("chairplay.linuxRelease").orNull?.also {
+    require(it.matches(Regex("[1-9][0-9]*"))) { "chairplay.linuxRelease must be a whole number from 1; got '$it'" }
+} ?: "1"
 
 // jpackage puts --input into the image's lib/app, which the launcher's java.library.path ($APPDIR) names, so the
 // .so files sit there beside the jars; so do the notices, which the About page opens.
@@ -126,6 +130,7 @@ tasks.register<Exec>("linuxDeb") {
                 "--description", "Wireless Apple CarPlay on your Linux PC (unofficial Linux port of ChairPlay by Oleksiy Strelets)",
                 "--icon", icon.asFile.path,
                 "--linux-package-name", "chairplay",
+                "--linux-app-release", linuxRelease,
                 "--linux-deb-maintainer", "unofficial-linux-port@invalid",
                 "--linux-menu-group", "AudioVideo",
                 "--linux-app-category", "video",

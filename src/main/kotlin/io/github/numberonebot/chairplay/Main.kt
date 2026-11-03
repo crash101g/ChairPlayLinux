@@ -53,10 +53,6 @@ internal val appLog = AppLog()
 internal fun log(message: String) = appLog.info(message)
 
 private const val SCREENSHOT_PICTURE_WAIT_NANOS = 30_000_000_000L
-private const val PREVIOUS_RUN_WAIT_MILLIS = 15_000L
-
-/** Held for the life of the process; the system lets go of it when the process ends. */
-private val instanceLock = AtomicReference<InstanceLock?>()
 private const val GPS_PAGE_MILLIS = 250L
 
 /** The app folder, where the settings, keys and pairings live. */
@@ -81,6 +77,7 @@ private fun runCarPlay(windowsOpen: () -> Unit) {
     val dir = dataDirectory()
     appLog.open(dir.resolve("logs"))
     appLog.log(LogLevel.WARNING, BuildInfo.load().startLine())
+    if (Host.isLinux && RunningInstance.handOver(dir)) exitProcess(0)
     routeFfmpegLog(appLog)
     val config = DesktopConfig(dir)
     appLog.level = config.logLevel
@@ -285,12 +282,7 @@ private fun runCarPlay(windowsOpen: () -> Unit) {
         sink.close()
         touchSender.shutdownNow()
     })
-    // A previous run that is still ending its session holds the iPhone's Bluetooth channel: wait for it first.
-    Thread({
-        instanceLock.set(InstanceLock.acquire(dir, PREVIOUS_RUN_WAIT_MILLIS) {
-            log("the previous run is still closing; waiting for it")
-            title.closingPrevious()
-        })
+    RunningInstance.afterPreviousRun(dir, onWait = title::closingPrevious) {
         lockReady.countDown()
         if (ui.connectsAtStart) {
             title.connecting()
@@ -299,8 +291,11 @@ private fun runCarPlay(windowsOpen: () -> Unit) {
             log(if (config.wifi == null) "no Wi-Fi network set; enter it on the start screen" else "waiting for Connect on the start screen")
             title.notConnected()
         }
-    }, "instance-lock").apply { isDaemon = true }.start()
+    }
+    // ChairPlay opened again shows this run; once the window closes, the next start waits for this run to end instead.
+    val laterStarts = if (Host.isLinux) RunningInstance.answer(dir) { window.setShown(true); altView.bring(); ui.reopenInBrowser() } else null
     // GLFW needs its windows and event loop on this, the main, thread; the bring-up runs on its own.
     runWindows(window, *listOfNotNull(altscreen, controlsWindow).toTypedArray(), pass = windowPass(driving, appControls), opened = windowsOpen)
+    laterStarts?.close()
     exitProcess(0)
 }

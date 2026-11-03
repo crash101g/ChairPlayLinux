@@ -43,6 +43,7 @@ picks the Linux natives and packaging when it runs on Linux.
 | Window hooks | Win32 title bar, close source, drag | Skipped; GLFW on X11/XWayland (`media/NativeWindow.kt`, `RunWindows.kt`) |
 | Hardware decoding | D3D11VA | VA-API where available (`D3D11Video.kt`) |
 | Theme, OS name, error box, links | Registry, MessageBox, explorer.exe | XDG portal/gsettings/COSMIC, os-release, zenity, xdg-open (`linux/LinuxDesktop.kt`, `UiPlaces.kt`) |
+| Opening ChairPlay again | — | Shows the running copy's windows and settings instead of starting a second copy that competes for the iPhone (`RunningInstance.kt`) |
 | App data | Next to the exe | `~/.local/share/ChairPlay` (`DesktopConfig.kt`, `Main.kt`) |
 | Native libraries | zig → `.dll` | gcc → `.so`; GL loader via GLX/EGL (`gradle/native.gradle.kts`, `native/maneuver/chairplay/gl_core.*`) |
 | Build & package | jpackage app image, Inno Setup | jpackage `.deb` (`gradle/linux-package.gradle.kts`, `scripts/build-linux.sh`), system check (`scripts/check-linux.sh`) |

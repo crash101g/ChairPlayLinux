@@ -193,6 +193,11 @@ class ChairPlayUi(
         return controller.embedded
     }
 
+    /** ChairPlay opened again: the settings come back in a browser window, where they are not in the main window. */
+    fun reopenInBrowser() {
+        if (!controller.embedded && !Host.isWindows) LinuxBrowser.open(server.url)
+    }
+
     override fun close() {
         checking.close()
         server.close()
