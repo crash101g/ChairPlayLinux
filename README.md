@@ -23,9 +23,9 @@ An unofficial port of <a href="https://github.com/NumberOneBot/ChairPlay">ChairP
 > This repository is a personal, unofficial port to Linux. It is not affiliated with or endorsed by the ChairPlay author,
 > DiPlay, xcertplay or Apple. **Please don't report Linux problems to the original project.**
 
-![ChairPlay: the CarPlay home screen in the ChairPlay window](docs/images/chairplay.jpg)
+![ChairPlay Linux: the AltScreen HUD with tachometer, speedometer and turn card above the GPS settings](docs/images/linux/hero.png)
 
-<sub>Screenshot from the original Windows app. On Linux it looks the same, except that the settings open in a browser window.</sub>
+<sub>Captured from the app running on Linux, with no iPhone connected: the route and song are the app's built-in HUD demo, and the speed comes from driving its virtual car. <a href="#screenshots">More screenshots</a></sub>
 
 ---
 
@@ -68,6 +68,35 @@ the app as a `.deb`:
 The full list of changes is in [LINUX-PORT-NOTICE.md](LINUX-PORT-NOTICE.md).
 
 **Tested** on Pop!_OS 24.04 (COSMIC) on an Intel PC. Other Ubuntu- and Debian-family systems should work but haven't been tested.
+
+---
+
+## Screenshots
+
+**The AltScreen HUD while driving.** The virtual car accelerating through the gears, with turn-by-turn cards from the built-in demo route:
+
+![The AltScreen HUD: the gauges climb from 20 to 180 km/h while the turn card counts down each maneuver](docs/images/linux/drive.gif)
+
+**The settings**, which on Linux open in a browser window:
+
+<table>
+  <tr>
+    <td><a href="docs/images/linux/settings-gps.png"><img src="docs/images/linux/settings-gps.png" alt="GPS settings with drive mode on and live speed, rpm and gear"></a></td>
+    <td><a href="docs/images/linux/settings-carplay.png"><img src="docs/images/linux/settings-carplay.png" alt="CarPlay settings: display size, codec, decoding and look"></a></td>
+  </tr>
+  <tr>
+    <td><a href="docs/images/linux/settings-keyboard.png"><img src="docs/images/linux/settings-keyboard.png" alt="Keyboard settings: text input, mouse wheel and key bindings"></a></td>
+    <td><a href="docs/images/linux/settings-audio.png"><img src="docs/images/linux/settings-audio.png" alt="Audio settings: devices, volume, music fade and navigation prompts"></a></td>
+  </tr>
+</table>
+
+<sub>From the real app on Linux with no iPhone connected. The window frames and wallpaper were added afterwards, and machine-specific values (paired iPhone, sound devices) are samples.</sub>
+
+**CarPlay itself**, from the original Windows app:
+
+![ChairPlay: the CarPlay home screen in the ChairPlay window](docs/images/chairplay.jpg)
+
+<sub>Screenshot from the original Windows app. On Linux CarPlay looks the same, except that the settings open in a browser window and the on-screen controls window at the bottom right is empty (every keyboard control works).</sub>
 
 ---
 
